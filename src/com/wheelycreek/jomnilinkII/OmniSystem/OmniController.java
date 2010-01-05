@@ -20,16 +20,10 @@ package com.wheelycreek.jomnilinkII.OmniSystem;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-//import java.util.ArrayList;
 import java.util.Vector;
-import java.util.Map.Entry;
 
 import com.digitaldan.jomnilinkII.Connection;
 import com.digitaldan.jomnilinkII.Message;
@@ -58,14 +52,15 @@ import com.digitaldan.jomnilinkII.MessageTypes.SystemStatus;
 import com.digitaldan.jomnilinkII.MessageTypes.SystemTroubles;
 import com.digitaldan.jomnilinkII.MessageTypes.ZoneReadyStatus;
 import com.wheelycreek.jomnilinkII.OmniNotifyListener;
-import com.wheelycreek.jomnilinkII.OmniPart;
+//import com.wheelycreek.jomnilinkII.OmniPart;
+import com.wheelycreek.jomnilinkII.OmniPart.NameChangeMessage;
 import com.wheelycreek.jomnilinkII.Parts.OmniZone;
 import com.wheelycreek.jomnilinkII.Parts.OmniSensor;
 import com.wheelycreek.jomnilinkII.Parts.OmniUnit;
 import com.wheelycreek.jomnilinkII.Parts.OmniButton;
 
 
-/** Root of object model for an ombi controller.
+/** Root of object model for an Omni controller.
  *
  * @author michaelg
  */
@@ -73,7 +68,7 @@ public class OmniController implements OmniNotifyListener {
 	public static void main(String[] args) {
 		
 		if(args.length != 3){
-			System.out.println("Usage:com.digitaldan.jomnilinkII.Main  host port encKey");
+			System.out.println("Usage:com.wheelycreek.jomnilinkII.OmiController host port encKey");
 			System.exit(-1);
 		}
 		String host  = args[0];
@@ -83,9 +78,7 @@ public class OmniController implements OmniNotifyListener {
 		try {
 			OmniController c = new OmniController(host,port,key);
 			c.setDebugChan(dcSensors | dcZones /*dcMessage*/ |dcChildMessage, true);
-			c.loadZones();
-			c.loadSensors();
-			c.loadButtons();
+			c.reloadProperties();
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 			System.exit(-1);
@@ -97,6 +90,7 @@ public class OmniController implements OmniNotifyListener {
 			System.exit(-1);
 		}
 	}
+
 	/// Debug channels (all)
 	static int dcAll = 0x3f;
 	/// Debug channel for connections
@@ -129,13 +123,17 @@ public class OmniController implements OmniNotifyListener {
 			omni.debug = newVal;
 	}
 
-	// The specified omni host
+	/** The specified omni host.
+	 */
 	private String omni_host;
-	// The specifed omni port.
+	/** The specified omni port.
+	 */
 	private int omni_port;
-	// The current key (for use with reconnect)
+	/** The current key (for use with reconnect)
+	 */
 	private String omni_key;
 
+	// Collections of names.
 	private	Vector<String> zone_names;
 	private Vector<String> unit_names;
 	private Vector<String> area_names;
@@ -206,10 +204,51 @@ public class OmniController implements OmniNotifyListener {
 			if (omni.connected())
 				omni.disconnect();
 			createConnection(omni_host,omni_port,omni_key);
+			// TODO: Reload the status properties. 
+			
 			return omni.connected();
+			
 		}
 	}
-
+	/** Get the capacity of an omni area.
+	 * @param area
+	 * @return The number of objects of the specified type.
+	 */
+	protected int getCapacity( OmniArea area) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
+		// Capacity for sensors is the same for zones. It's just about the types.
+		// (Querying for sensors will result in an error).
+		if (area == OmniArea.Sensor)
+			area = OmniArea.Zone;
+		return omni.reqObjectTypeCapacities(area.get_objtype_msg()).getCapacity();
+	}
+	
+	/** Reload all properties (including names and types).
+	 * @throws Exception 
+	 * @throws OmniUnknownMessageTypeException 
+	 * @throws OmniInvalidResponseException 
+	 * @throws OmniNotConnectedException 
+	 * @throws IOException 
+	  */
+	public void reloadProperties() throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException, Exception {
+		loadZones();
+		loadSensors();
+		loadUnits();
+		loadButtons();
+	}
+	/** Reload the status for the parts.
+	 * @throws OmniUnknownMessageTypeException 
+	 * @throws OmniInvalidResponseException 
+	 * @throws OmniNotConnectedException 
+	 * @throws IOException 
+	  */
+	public void reloadStatus() throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
+		updateZones();
+		updateSensors();
+	}
+	
+	/** Receive status notifications from the communications layer.
+	 * @param s The status object for the area.
+	 */
 	protected void statusNotify(ObjectStatus s) {
 		OmniArea area = OmniArea.fromMessageType(s.getStatusType());
 		if (getDebugChan(dcMessage)) {
@@ -218,12 +257,9 @@ public class OmniController implements OmniNotifyListener {
 		}
 				
 		switch (area) {
-		
 		case Area:
-			
 			break;
 		case AudioZone:
-			
 			break;
 		case Sensor: {
 			Status status[]  = s.getStatuses();
@@ -233,13 +269,10 @@ public class OmniController implements OmniNotifyListener {
 			}
 		} break;
 		case ExpEnclosure:
-			
 			break;
 		case Msg:
-			
 			break;
 		case Thermo:
-			
 			break;
 		case Unit: {
 			Status status[]	= s.getStatuses();
@@ -251,8 +284,8 @@ public class OmniController implements OmniNotifyListener {
 		}
 		break;
 		case Zone: {
-			Status status[]	= s.getStatuses();
-			
+			Status status[] = s.getStatuses();
+
 			for (int i = 0; i< status.length; ++i) {
 				ZoneStatus zs = (ZoneStatus) status[i];
 				zoneStatusReceive(zs);
@@ -328,9 +361,7 @@ public class OmniController implements OmniNotifyListener {
 		}
 		return result;
 	}
-	protected int getCapacity( OmniArea area) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
-		return omni.reqObjectTypeCapacities(area.get_objtype_msg()).getCapacity();
-	}
+
 	protected void loadZones() throws Exception {
 		loadZones(1,0);
 	}
@@ -554,6 +585,13 @@ public class OmniController implements OmniNotifyListener {
 		return result;
 	}
 	
+	/** Get at vectors of names, loaded with names.
+	 * This allows access to just the names.
+	 * @param area
+	 * @return
+	 * @throws OmniNotConnectedException
+	 * @throws Exception
+	 */
 	protected Vector<String> get_vectors(OmniArea area) throws OmniNotConnectedException, Exception {
 		switch (area) {
 		case Zone:
@@ -572,13 +610,14 @@ public class OmniController implements OmniNotifyListener {
 			return null;
 		}
 	}
-	public void setName( OmniArea area, int index, String name ) throws OmniNotConnectedException, Exception {
+
+	// 
+	protected void setName( OmniArea area, int index, String name ) throws OmniNotConnectedException, Exception {
 		Vector<String> vectors = get_vectors(area);
 		if (vectors != null) {
 			if (index >= vectors.size())
 				vectors.setSize(index);
 			vectors.set(index-1, name);
-			// TODO  Push it up to the omni.
 		}
 	}
 	public String getName(OmniArea area, int index) throws OmniNotConnectedException, Exception {
@@ -591,20 +630,12 @@ public class OmniController implements OmniNotifyListener {
 			return vectors.get(index-1);
 	}
 	
-	public void setZoneName(int index, String name) throws OmniNotConnectedException, Exception {
-		setName(OmniArea.Zone, index, name); 
-	}
+
 	public String getZoneName(int index) throws OmniNotConnectedException, Exception {
 		return getName(OmniArea.Zone, index);
 	}
-	public void setUnitName(int index, String name) throws OmniNotConnectedException, Exception {
-		setName(OmniArea.Unit, index, name);
-	}
 	public String getUnitName(int index) throws OmniNotConnectedException, Exception {
 		return getName(OmniArea.Unit, index);
-	}
-	public void setAreaName(int index, String name) throws OmniNotConnectedException, Exception {
-		setName(OmniArea.Area, index, name);
 	}
 	public String getAreaName(int index) throws OmniNotConnectedException, Exception {
 		return getName(OmniArea.Area, index);
@@ -736,6 +767,29 @@ public class OmniController implements OmniNotifyListener {
 				notificationListeners.remove(listener);
 		}
 	}
+	
+	protected void objectChangeRequest(ChangeMessage msg) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
+		if (msg instanceof NameChangeMessage ) {
+			omni.sendName(msg.area.get_objtype_msg(), msg.number, ((NameChangeMessage) msg).name);
+		} else { 
+			switch (msg.area) {
+			case Button: {
+				//OmniButton.ButtonPressMessage bpm = (OmniButton.ButtonPressMessage)msg;
+				// TODO: Create a CommandMessage to send a mcro button press.
+			} break;	
+			case Unit: {
+				//OmniUnit.UnitChangeMessage ucm = (OmniUnit.UnitChangeMessage)msg;
+				// TODO: Change the value of a unit. (optionally for a specified time)
+			} break;
+			case Sensor:{
+				//OmniSensor.SensorChangeMessage scm = (OmniSensor.SensorChangeMessage)msg;
+				// TODO: Change min/max on the sensors.
+				
+			} break;
+			}
+		}
+	}
+	
 	@Override
 	public void objectChangedNotification(ChangeMessage msg) {
 		if (getDebugChan(dcChildMessage))
@@ -746,8 +800,25 @@ public class OmniController implements OmniNotifyListener {
 				e.printStackTrace();
 			} catch (Exception e) {
 				e.printStackTrace();
-			}	
-		
+			}
+		if (msg.notifyType == NotifyType.ChangeRequest) {
+			// A change has been requested to be sent to the omni.
+			try {
+				objectChangeRequest(msg);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (OmniNotConnectedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (OmniInvalidResponseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (OmniUnknownMessageTypeException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 
 }
