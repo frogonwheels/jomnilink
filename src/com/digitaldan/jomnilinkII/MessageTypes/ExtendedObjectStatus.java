@@ -42,30 +42,20 @@ public class ExtendedObjectStatus extends ObjectStatus implements Message{
 
 	public ExtendedObjectStatus(int statusType, int recordLength, Status[] statuses) {
 		super(statusType, statuses);
-		//this.statusType = statusType;
 		this.recordLength = recordLength;
-		//this.statuses = statuses;
 	}
-
-//	public int getStatusType() {
-//		return statusType;
-//	}
 	
 	public int getRecordLength() {
 		return recordLength;
 	}
-
-//	public Status[] getStatuses() {
-//		return statuses;
-//	}
 
 	public String toString() {
 	    final String TAB = "    ";
 	    String retValue = "";
 	    
 	    retValue = "ObjectStatus ( "
-//	        + "statusType = " + this.statusType + TAB
-//	        + "statuses = " + this.statuses + TAB
+	        + "statusType = " + this.getStatusType() + TAB
+	        + "statuses = " + this.statusString() + TAB
 	        + " )";
 	
 	    return retValue;
