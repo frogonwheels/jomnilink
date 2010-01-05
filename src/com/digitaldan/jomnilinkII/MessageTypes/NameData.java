@@ -5,7 +5,7 @@ import com.digitaldan.jomnilinkII.Message;
 public class NameData implements Message {
 
 	private int objectType;
-	private int objetcNumber;
+	private int objectNumber;
 	private String name;
 	
 	/*
@@ -55,7 +55,7 @@ Audio Zone 10 12 8 36 8 36
 	public NameData(int objectType, int objetcNumber, String name) {
 		super();
 		this.objectType = objectType;
-		this.objetcNumber = objetcNumber;
+		this.objectNumber = objetcNumber;
 		this.name = name;
 	}
 
@@ -68,7 +68,7 @@ Audio Zone 10 12 8 36 8 36
 	}
 
 	public int getObjetcNumber() {
-		return objetcNumber;
+		return objectNumber;
 	}
 
 	public String getName() {
@@ -81,7 +81,7 @@ Audio Zone 10 12 8 36 8 36
 	    
 	    retValue = "NameData ( "
 	        + "objectType = " + this.objectType + TAB
-	        + "objetcNumber = " + this.objetcNumber + TAB
+	        + "objetcNumber = " + this.objectNumber + TAB
 	        + "name = " + this.name + TAB
 	        + " )";
 	

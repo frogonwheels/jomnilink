@@ -1,5 +1,7 @@
 package com.digitaldan.jomnilinkII.MessageTypes.statuses;
 
+import com.digitaldan.jomnilinkII.MessageUtils;
+
 /**
 *  Copyright (C) 2009  Dan Cunningham                                         
 *                                                                             
@@ -23,7 +25,7 @@ public class AuxSensorStatus extends Status{
 	
 	private int status;
 	private int temp;
-	private int heatSetpotint;
+	private int heatSetpoint;
 	private int coolSetpoint;
 	
 	/*
@@ -66,7 +68,7 @@ The temperatures are reported in the Omni temperature format (see Appendix C).
 		super(number);
 		this.status = status;
 		this.temp = temp;
-		this.heatSetpotint = heatSetpotint;
+		this.heatSetpoint = heatSetpotint;
 		this.coolSetpoint = coolSetpoint;
 	}
 	public int getStatus() {
@@ -76,10 +78,14 @@ The temperatures are reported in the Omni temperature format (see Appendix C).
 		return temp;
 	}
 	public int getHeatSetpotint() {
-		return heatSetpotint;
+		return heatSetpoint;
 	}
 	public int getCoolSetpoint() {
 		return coolSetpoint;
+	}
+
+	public double getTempInCelcius() {
+		return MessageUtils.TempInCelcius(this.temp);
 	}
 	public String toString() {
 	    final String TAB = "    ";
@@ -88,9 +94,9 @@ The temperatures are reported in the Omni temperature format (see Appendix C).
 	    retValue = "AuxSensorStatus ( "
 	    	+ "number = " + this.number + TAB
 	        + "status = " + this.status + TAB
-	        + "temp = " + this.temp + TAB
-	        + "heatSetpotint = " + this.heatSetpotint + TAB
-	        + "coolSetpoint = " + this.coolSetpoint + TAB
+	        + "temp = " + this.temp + " ("+MessageUtils.TempInCelciusString(this.temp)+")"+ TAB
+	        + "heatSetpotint = " + this.heatSetpoint + " ("+MessageUtils.TempInCelciusString(this.heatSetpoint)+")" + TAB
+	        + "coolSetpoint = " + this.coolSetpoint + " ("+MessageUtils.TempInCelciusString(this.coolSetpoint)+")" + TAB
 	        + " )";
 	
 	    return retValue;

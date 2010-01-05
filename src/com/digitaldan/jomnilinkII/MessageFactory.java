@@ -24,7 +24,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.security.AccessController;
+//import java.security.AccessController;
 import java.util.HashMap;
 
 import com.digitaldan.jomnilinkII.MessageTypes.Acknowledge;
@@ -89,7 +89,7 @@ public class MessageFactory {
 		ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
 		DataInputStream in = new DataInputStream(new ByteArrayInputStream(bytes));
 		
-		int start = in.readUnsignedByte();
+		/*int start = */in.readUnsignedByte();
 		int length = in.readUnsignedByte();
 		int type = in.readUnsignedByte();
 		//System.out.println("Start " + start + " length " + length + " type " + type);
@@ -134,7 +134,7 @@ public class MessageFactory {
 		case Message.MESG_TYPE_ZONE_READY:
 			return zoneReadyStatus(in,len);
 		case Message.MESG_TYPE_OTHER_EVENT_NOTIFY:
-			return otherEventNOtification(in,len);
+			return otherEventNotification(in,len);
 		case Message.MESG_TYPE_EVENT_LOG_DATA:
 			return eventLogData(in,len);
 		case Message.MESG_TYPE_NAME_DATA:
@@ -623,7 +623,7 @@ public class MessageFactory {
 		return new ConnectedSecurityStatus(parts);
 	}
 	
-	protected static OtherEventNotifications otherEventNOtification(DataInputStream in, int length) throws IOException{
+	protected static OtherEventNotifications otherEventNotification(DataInputStream in, int length) throws IOException{
 		int[]notifications = new int[length/2];
 		for(int i=0;i<notifications.length;i++){
 			notifications[i] = in.readUnsignedShort();
