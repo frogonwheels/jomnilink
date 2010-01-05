@@ -1,6 +1,22 @@
 /** Temperature sensors.
  *
  */
+/*  Copyright (C) 2010 Michael Geddes
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 package com.wheelycreek.jomnilinkII.Parts;
 
 import com.wheelycreek.jomnilinkII.OmniPart;
@@ -8,7 +24,7 @@ import com.wheelycreek.jomnilinkII.OmniSystem.OmniArea;
 import com.wheelycreek.jomnilinkII.OmniSystem.Temperature;
 import com.wheelycreek.jomnilinkII.OmniNotifyListener;
 
-/** Temperature sensor.
+/** Omni Temperature sensor.
  * @author michaelg
  */
 public class OmniSensor extends OmniPart {
@@ -108,15 +124,20 @@ public class OmniSensor extends OmniPart {
 			temp = new Temperature();
 		return temp;
 	}
-	/**
-	 * @param temp the temp to set
+	/** Set the current temperature
+	 * @param temp the temperature to set
 	 */
 	public void setTemperature(Temperature temp) {
 		setTemperature(temp, OmniNotifyListener.NotifyType.ChangeRequest);
 	}
+	/** Return true if two temperatures are different.
+	  * Allows for nulls.
+	  */
 	private static boolean isDifferent(Temperature lhs, Temperature rhs) {
 		return (lhs != rhs) && (lhs == null || lhs == null || !lhs.equals(rhs));
 	}
+	/** Update the temperature.
+	  */
 	public void setTemperature(Temperature temp, OmniNotifyListener.NotifyType notifyType) {
 		if (isDifferent(this.temp,temp)) {
 			this.temp = temp;

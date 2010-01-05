@@ -864,4 +864,4 @@ public class Connection extends Thread {
 	}
 
 }
-
+// vim: syntax=java.doxygen ts=4 sw=4 noet

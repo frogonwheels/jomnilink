@@ -1,3 +1,21 @@
+/** Object model for Omni system.
+  */
+/*  Copyright (C) 2010 Michael Geddes
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 package com.wheelycreek.jomnilinkII.OmniSystem;
 
 import java.io.IOException;
@@ -38,10 +56,7 @@ import com.digitaldan.jomnilinkII.MessageTypes.SystemFormats;
 import com.digitaldan.jomnilinkII.MessageTypes.SystemInformation;
 import com.digitaldan.jomnilinkII.MessageTypes.SystemStatus;
 import com.digitaldan.jomnilinkII.MessageTypes.SystemTroubles;
-//import com.digitaldan.jomnilinkII.MessageTypes.UploadEventRecord;
-//import com.digitaldan.jomnilinkII.MessageTypes.UploadNames;
 import com.digitaldan.jomnilinkII.MessageTypes.ZoneReadyStatus;
-//import com.digitaldan.jomnilinkII.MessageTypes.statuses.ZoneStatus;
 import com.wheelycreek.jomnilinkII.OmniNotifyListener;
 import com.wheelycreek.jomnilinkII.OmniPart;
 import com.wheelycreek.jomnilinkII.Parts.OmniZone;
@@ -49,10 +64,9 @@ import com.wheelycreek.jomnilinkII.Parts.OmniSensor;
 import com.wheelycreek.jomnilinkII.Parts.OmniUnit;
 import com.wheelycreek.jomnilinkII.Parts.OmniButton;
 
-//import com.wheelycreek.jomnilinkII.OmniPart;
 
-/** Represents a whole controller.
- * 
+/** Root of object model for an ombi controller.
+ *
  * @author michaelg
  */
 public class OmniController implements OmniNotifyListener {
@@ -83,17 +97,29 @@ public class OmniController implements OmniNotifyListener {
 			System.exit(-1);
 		}
 	}
+	/// Debug channels (all)
 	static int dcAll = 0x3f;
+	/// Debug channel for connections
 	static int dcConnection = 0x1;
+	/// Debug channel for messsages
 	static int dcMessage = 0x2;
+	/// Debug channel for zones
 	static int dcZones = 0x4;
+	/// Debug channel for child messages
 	static int dcChildMessage = 0x8;
+	/// Debug channel for sensors
 	static int dcSensors = 0x10;
+	/// Debug channel for units
 	static int dcUnits = 0x20;
 	private int debug_channels;
+
+	/** Check all the specified debug channels are set.
+	  */
 	public boolean getDebugChan( int channels ) {
 		return (debug_channels & channels) == channels;
 	}
+	/** Set the specified debug channels.
+	  */
 	public void setDebugChan( int channels, boolean newVal) {
 		if (newVal)
 			debug_channels |= channels;
@@ -103,17 +129,24 @@ public class OmniController implements OmniNotifyListener {
 			omni.debug = newVal;
 	}
 
+	// The specified omni host
 	private String omni_host;
+	// The specifed omni port.
 	private int omni_port;
+	// The current key (for use with reconnect)
 	private String omni_key;
+
 	private	Vector<String> zone_names;
 	private Vector<String> unit_names;
 	private Vector<String> area_names;
+
+	// Collections of Omni parts.
 	private SortedMap<Integer, OmniZone> zones;
 	private SortedMap<Integer, OmniSensor> sensors;
 	private SortedMap<Integer, OmniUnit> units;
 	private SortedMap<Integer, OmniButton> buttons;
 	
+	// Various one-off bits of system information.
 	private SystemFeatures    sys_features;
 	private SystemFormats     sys_formats;
 	private SystemInformation sys_info;
@@ -121,6 +154,9 @@ public class OmniController implements OmniNotifyListener {
 	private SystemTroubles    sys_troubles;
 	private ZoneReadyStatus   zones_ready;
 	
+	/** Construct required arrays.
+	  * Called by constructors.
+	  */
 	private void constructArrays() {
 		notificationListeners = new Vector<OmniNotifyListener>();
 		zones   = new TreeMap<Integer, OmniZone>();
@@ -701,3 +737,4 @@ public class OmniController implements OmniNotifyListener {
 	}
 
 }
+// vim: syntax=java.doxygen ts=4 sw=4 noet
