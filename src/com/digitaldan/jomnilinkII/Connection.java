@@ -28,7 +28,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.security.AccessController;
+//import java.security.AccessController;
 import java.util.LinkedList;
 import java.util.Vector;
 
@@ -38,7 +38,7 @@ import com.digitaldan.jomnilinkII.MessageTypes.ConnectedSecurityCommand;
 import com.digitaldan.jomnilinkII.MessageTypes.ConnectedSecurityStatus;
 import com.digitaldan.jomnilinkII.MessageTypes.DownloadNames;
 import com.digitaldan.jomnilinkII.MessageTypes.EnableNotifications;
-import com.digitaldan.jomnilinkII.MessageTypes.EventLogData;
+//import com.digitaldan.jomnilinkII.MessageTypes.EventLogData;
 import com.digitaldan.jomnilinkII.MessageTypes.ExtendedObjectStatus;
 import com.digitaldan.jomnilinkII.MessageTypes.ObjectStatus;
 import com.digitaldan.jomnilinkII.MessageTypes.ObjectTypeCapacities;
@@ -85,15 +85,15 @@ public class Connection extends Thread {
 	private static int PACKET_TYPE_CONTROLLER_ACKNOWLEDGE_NEW_SESSION = 2;
 	private static int PACKET_TYPE_CLIENT_REQUEST_SECURE_CONNECTION = 3;
 	private static int PACKET_TYPE_CONTROLLER_ACKNOWLEDGE_SECURE_CONNECTION = 4;
-	private static int PACKET_TYPE_CLIENT_SESSION_TERMINATED = 5;
+	/*private static int PACKET_TYPE_CLIENT_SESSION_TERMINATED = 5;
 	private static int PACKET_TYPE_CONTROLLER_SESSION_TERMINATED = 6;
-	private static int PACKET_TYPE_CONTROLLER_CANNOT_START_NEW_SESSION = 7;
+	private static int PACKET_TYPE_CONTROLLER_CANNOT_START_NEW_SESSION = 7; */
 	private static int PACKET_TYPE_OMNI_LINK_MESSAGE = 32;
 
 	public static int MAX_PACKET_SIZE = 255;
-	//Omni will kick you after 5 minutes of not receiveing anything
+	//Omni will kick you after 5 minutes of not receiving anything
 	public static int OMNI_TO = 60 * 5 * 1000;
-	//Keep alive time, omni timeout minus one minute
+	// Keep alive time, Omni timeout minus one minute
 	public static int PING_TO = OMNI_TO - (1000 * 60);
 
 	public boolean debug;
@@ -104,7 +104,7 @@ public class Connection extends Thread {
 	private InputStream is;
 	private OutputStream os;
 	private int tx;
-	private int rx;
+	//private int rx;
 	private Aes aes;
 	private LinkedList<Message> notifications;
 	private OmniPacket response;
@@ -123,8 +123,8 @@ public class Connection extends Thread {
 		notifications = new LinkedList<Message>();
 		response = null;
 		lastException = null;
-		notificationListeners = new Vector();
-		disconnectListeners = new Vector();
+		notificationListeners = new Vector<NotificationListener>();
+		disconnectListeners = new Vector<DisconnectListener>();
 
 		byte[] _key = hexStringToByteArray(key.replaceAll("\\W", ""));		
 
@@ -133,7 +133,7 @@ public class Connection extends Thread {
 		os = socket.getOutputStream();
 		socket.setSoTimeout(OMNI_TO);
 		tx = 1;
-		rx = 1;
+		// rx = 1;
 
 		sendBytes(new OmniPacket(PACKET_TYPE_CLIENT_REQUEST_NEW_SESSION,null));
 
@@ -183,7 +183,7 @@ public class Connection extends Thread {
 		notificationHandler.setName("NotificationHandlerThread");
 		notificationHandler.start();
 		
-		ConnectionWatchdog watchdog = new ConnectionWatchdog();
+		/*ConnectionWatchdog*/ watchdog = new ConnectionWatchdog();
 		watchdog.setName("ConnectionWatchdogThread");
 		watchdog.start();
 	}
@@ -429,7 +429,7 @@ public class Connection extends Thread {
 
 		int seq = dis.readUnsignedShort();
 		int type = dis.readUnsignedByte();
-		int reserved = dis.readUnsignedByte();
+		/*int reserved = */ dis.readUnsignedByte();
 
 		byte [] encData = new byte [16];
 		dis.readFully(encData);
@@ -500,7 +500,7 @@ public class Connection extends Thread {
 
 		int seq = dis.readUnsignedShort();
 		int type = dis.readUnsignedByte();
-		int reserved = dis.readUnsignedByte();
+		/*int reserved = */dis.readUnsignedByte();
 
 		byte [] msgdata = new byte [cnt -4];
 		dis.readFully(msgdata);
@@ -639,10 +639,18 @@ public class Connection extends Thread {
 			else
 				msg = sendAndReceive(new ReqExtenedObjectStatus(objectType,current,next));
 
-			if(msg.getMessageType() != Message.MESG_TYPE_OBJ_STATUS &&
-					msg.getMessageType() != Message.MESG_TYPE_EXT_OBJ_STATUS)
+			int curMsgType = msg.getMessageType();
+			switch (curMsgType) {
+			case Message.MESG_TYPE_OBJ_STATUS: 
+			case Message.MESG_TYPE_EXT_OBJ_STATUS: {
+				System.arraycopy(((ObjectStatus)msg).getStatuses(), 0, s, current -1, next - current + 1 );
+			}
+			break;
+			case Message.MESG_TYPE_NEG_ACK:
 				throw new OmniInvalidResponseException(msg);
-			System.arraycopy(((ObjectStatus)msg).getStatuses(), 0, s, current -1, next - current + 1 );
+			default:
+				throw new OmniInvalidResponseException(msg);
+			}
 			current = next;
 		}
 		return new ObjectStatus(objectType,s);
@@ -800,6 +808,7 @@ public class Connection extends Thread {
 	}
 	
 	private class NotificationHandler extends Thread{
+		@SuppressWarnings("unchecked")
 		public void run(){
 			while(connected){
 				synchronized (notifyLock) {
