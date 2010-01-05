@@ -2,6 +2,10 @@ package com.digitaldan.jomnilinkII;
 
 public class OmniUnknownMessageTypeException extends Exception {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -575207781457270185L;
 	private int type;
 	
 	public OmniUnknownMessageTypeException(int type) {
