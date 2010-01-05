@@ -61,7 +61,7 @@ NOTE notifiations that come back have a SEQ of 00
 	}
 	
 	public String toString() {
-	    final String TAB = "    ";
+	    //final String TAB = "    ";
 	    String retValue = "";
 	    
 	    retValue = "EnableNotifications ( "

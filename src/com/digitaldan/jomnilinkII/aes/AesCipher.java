@@ -83,9 +83,9 @@ public class AesCipher extends BlockCipher
         { { 0, 0 }, { 1, 7 }, { 3, 5 }, { 4, 4 } }
 	};
 
-    private static final char[] HEX_DIGITS = {
+    /*private static final char[] HEX_DIGITS = {
         '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
-	};
+	};*/
 
     // Static initializer - to intialise S-boxes and T-boxes
     static
@@ -360,7 +360,7 @@ public class AesCipher extends BlockCipher
 
     // Block encryption routines.
 
-    private int[] tempInts = new int[8];
+    //private int[] tempInts = new int[8];
 
 
     /// Encrypt a block.

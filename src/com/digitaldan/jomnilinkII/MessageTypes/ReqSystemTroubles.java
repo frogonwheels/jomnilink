@@ -38,8 +38,9 @@ public class ReqSystemTroubles implements Message {
 		return MESG_TYPE_REQ_SYS_TROUBLES;
 	}
 
+	@Override
 	public String toString() {
-	    final String TAB = "    ";
+	    //final String TAB = "    ";
 	    String retValue = "";
 	    
 	    retValue = "ReqSystemTroubles ( "

@@ -32,7 +32,7 @@ public class EndOfData implements Message{
 	}
 
 	public String toString() {
-	    final String TAB = "    ";
+	    //final String TAB = "    ";
 	    String retValue = "";
 	    
 	    retValue = "EndOfData ( "

@@ -39,8 +39,9 @@ reading, alarm status for any area that is in alarm.
 		return MESG_TYPE_REQ_SYS_STATUS;
 	}
 
+	@Override
 	public String toString() {
-	    final String TAB = "    ";
+	    //final String TAB = "    ";
 	    String retValue = "";
 	    
 	    retValue = "ReqSystemStatus ( "

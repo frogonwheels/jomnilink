@@ -31,7 +31,7 @@ public class Acknowledge implements Message{
 	}
 
 	public String toString() {
-	    final String TAB = "    ";
+	    //final String TAB = "    ";
 	    String retValue = "";
 	    
 	    retValue = "Acknowledge ( "

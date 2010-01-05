@@ -38,9 +38,10 @@ public class ReqSystemFeatures implements Message {
 	public int getMessageType() {
 		return MESG_TYPE_REQ_SYS_FEATURES;
 	}
-
+	
+	@Override
 	public String toString() {
-	    final String TAB = "    ";
+	    //final String TAB = "    ";
 	    String retValue = "";
 	    
 	    retValue = "ReqSystemFeatures ( "

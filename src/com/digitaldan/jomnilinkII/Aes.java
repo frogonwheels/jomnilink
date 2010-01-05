@@ -21,7 +21,7 @@ package com.digitaldan.jomnilinkII;
 import java.io.IOException;
 
 import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
+//import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 
 

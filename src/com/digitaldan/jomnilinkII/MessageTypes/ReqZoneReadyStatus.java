@@ -38,9 +38,10 @@ not in the secure state will be reported as not ready. Auxiliary and temperature
 	public int getMessageType() {
 		return MESG_TYPE_REQ_ZONE_READY;
 	}
-
+	
+	@Override
 	public String toString() {
-	    final String TAB = "    ";
+	    //final String TAB = "    ";
 	    String retValue = "";
 	    
 	    retValue = "ReqZoneReadyStatus ( "

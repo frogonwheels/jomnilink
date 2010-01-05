@@ -38,9 +38,10 @@ public class ReqSystemFormats implements Message {
 	public int getMessageType() {
 		return MESG_TYPE_REQ_SYS_FORMATS;
 	}
-
+	
+	@Override
 	public String toString() {
-	    final String TAB = "    ";
+	    //final String TAB = "    ";
 	    String retValue = "";
 	    
 	    retValue = "ReqSystemFormats ( "

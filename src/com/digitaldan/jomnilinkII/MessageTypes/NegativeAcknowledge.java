@@ -30,9 +30,9 @@ public class NegativeAcknowledge implements Message{
 	public int getMessageType() {
 		return MESG_TYPE_NEG_ACK;
 	}
-
+	@Override
 	public String toString() {
-	    final String TAB = "    ";
+	    //final String TAB = "    ";
 	    String retValue = "";
 	    
 	    retValue = "NegativeAcknowledge ( "
