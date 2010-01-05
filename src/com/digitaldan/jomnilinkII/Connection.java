@@ -628,22 +628,21 @@ public class Connection extends Thread {
 			break;
 		}
 		int current = startObject;
-		int next = 0;
-		while(current < endObject){
-			next += 25;
-			if(next > endObject)
-				next = endObject;
+		while(current <= endObject){
+			int last = current + 24; // Request 25 at a time
+			if(last > endObject)
+				last = endObject;
 			Message msg = null;
 			if(extended)
-				msg = sendAndReceive(new ReqObjectStatus(objectType,current,next));
+				msg = sendAndReceive(new ReqObjectStatus(objectType,current,last));
 			else
-				msg = sendAndReceive(new ReqExtenedObjectStatus(objectType,current,next));
+				msg = sendAndReceive(new ReqExtenedObjectStatus(objectType,current,last));
 
 			int curMsgType = msg.getMessageType();
 			switch (curMsgType) {
 			case Message.MESG_TYPE_OBJ_STATUS: 
 			case Message.MESG_TYPE_EXT_OBJ_STATUS: {
-				System.arraycopy(((ObjectStatus)msg).getStatuses(), 0, s, current -1, next - current + 1 );
+				System.arraycopy(((ObjectStatus)msg).getStatuses(), 0, s, current -startObject, last - current + 1 );
 			}
 			break;
 			case Message.MESG_TYPE_NEG_ACK:
@@ -651,7 +650,7 @@ public class Connection extends Thread {
 			default:
 				throw new OmniInvalidResponseException(msg);
 			}
-			current = next;
+			current = last+1;
 		}
 		return new ObjectStatus(objectType,s);
 	}
