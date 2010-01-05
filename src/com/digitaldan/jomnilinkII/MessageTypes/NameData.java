@@ -52,10 +52,10 @@ Audio Source 9 12 6 8 6 8
 Audio Zone 10 12 8 36 8 36 
 
 	 */
-	public NameData(int objectType, int objetcNumber, String name) {
+	public NameData(int objectType, int objectNumber, String name) {
 		super();
 		this.objectType = objectType;
-		this.objectNumber = objetcNumber;
+		this.objectNumber = objectNumber;
 		this.name = name;
 	}
 
@@ -67,7 +67,7 @@ Audio Zone 10 12 8 36 8 36
 		return objectType;
 	}
 
-	public int getObjetcNumber() {
+	public int getObjectNumber() {
 		return objectNumber;
 	}
 
