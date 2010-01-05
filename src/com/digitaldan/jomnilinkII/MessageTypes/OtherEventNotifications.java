@@ -59,7 +59,7 @@ public class OtherEventNotifications implements Message{
 					case 0x0:
 						return OtherEvent.EventType.PhoneLine;
 					case 0x4:
-						return OtherEvent.EventType.Power; 
+						return OtherEvent.EventType.Power;
 					case 0x8:
 						if ((msg & 0x2) == 0)
 							return OtherEvent.EventType.DCM;

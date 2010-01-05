@@ -117,7 +117,7 @@ public class Connection extends Thread {
 	private NotificationHandler notificationHandler;
 	private ConnectionWatchdog watchdog;
 	public Connection(String address, int port, String key) 
-	throws Exception,IOException,UnknownHostException {
+	  throws Exception,IOException,UnknownHostException {
 
 		ping = true;
 		notifications = new LinkedList<Message>();
@@ -174,7 +174,7 @@ public class Connection extends Thread {
 		connected = true;
 		lastTXMessageTime = System.currentTimeMillis();
 		
-		notificationListeners = new Vector<NotificationListener>();
+		//notificationListeners = new Vector<NotificationListener>();
 		
 		this.setName("OmniReaderThread");
 		this.start();
@@ -187,7 +187,7 @@ public class Connection extends Thread {
 		watchdog.setName("ConnectionWatchdogThread");
 		watchdog.start();
 	}
-
+	
 	public void disconnect(){
 		connected = false;
 		if(socket != null){
@@ -700,8 +700,8 @@ public class Connection extends Thread {
 		if(msg.getMessageType() != Message.MESG_TYPE_ACK)
 			throw new OmniInvalidResponseException(msg);
 	}
-
-	public  void connectedSecurityCommand(int command, int partition, int digit1,
+	
+	public void connectedSecurityCommand(int command, int partition, int digit1,
 			int digit2,int digit3,int digit4,int digit5,int digit6) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
 		Message msg = sendAndReceive(new ConnectedSecurityCommand(command,partition, digit1,
 				digit2,digit3,digit4,digit5,digit6));
@@ -709,13 +709,13 @@ public class Connection extends Thread {
 			throw new OmniInvalidResponseException(msg);
 	}
 
-	public  void controllerCommand(int command, int p1, int p2) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
+	public void controllerCommand(int command, int p1, int p2) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
 		Message msg = sendAndReceive(new CommandMessage(command,p1,p2));
 		if(msg.getMessageType() != Message.MESG_TYPE_ACK)
 			throw new OmniInvalidResponseException(msg);
 	}
 
-	public  void setTimeCommand(int year, int month, int day, int dayOfWeek,
+	public void setTimeCommand(int year, int month, int day, int dayOfWeek,
 			int hour, int minute, boolean daylightSavings) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
 		Message msg = sendAndReceive(new SetTimeCommand(year, month, day, dayOfWeek,
 				hour, minute, daylightSavings));

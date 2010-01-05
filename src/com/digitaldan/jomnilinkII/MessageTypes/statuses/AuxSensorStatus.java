@@ -77,7 +77,7 @@ The temperatures are reported in the Omni temperature format (see Appendix C).
 	public int getTemp() {
 		return temp;
 	}
-	public int getHeatSetpotint() {
+	public int getHeatSetpoint() {
 		return heatSetpoint;
 	}
 	public int getCoolSetpoint() {

@@ -62,7 +62,7 @@ public class AreaProperties extends ObjectProperties {
 		return entryDelay;
 	}
 	public String toString() {
-	    final String TAB = "    ";
+	    final String TAB = "	";
 	    String retValue = "";
 	    
 	    retValue = "AreaProperties ( "
@@ -73,9 +73,10 @@ public class AreaProperties extends ObjectProperties {
 	        + "exitTimer = " + this.exitTimer + TAB
 	        + "enabled = " + this.enabled + TAB
 	        + "exitDelay = " + this.exitDelay + TAB
-	        + "entryDelay = " + this.entryDelay + TAB
-	        + "name = " + this.name + TAB
-	        + " )";
+	        + "entryDelay = " + this.entryDelay + TAB;
+	    retValue = retValue
+	        + "name = " + this.name + TAB;
+	    retValue = retValue + " )";
 	
 	    return retValue;
 	}
