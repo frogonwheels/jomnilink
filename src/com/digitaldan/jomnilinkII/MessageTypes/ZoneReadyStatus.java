@@ -49,6 +49,24 @@ zone is not ready.
 	public int[] getZones() {
 		return zones;
 	}
+	public boolean getZoneReady( int zone ) {
+		if (zone < 0) return false;
+		int byteNo = zone / 8;
+		
+		if (byteNo >= zones.length) return true; 
+		return (zones[byteNo] >> (zone % 8) & 0x1) == 0x1;
+	}
+	public void setZoneReady( int zone, boolean ready ) {
+		if (zone >= 0) {
+			int byteNo = zone / 8;
+			if (byteNo < zones.length) {
+				if (ready)
+					zones[byteNo] |= 0x1 << (zone%8);
+				else
+					zones[byteNo] &= ~(0x1<< (zone%8));
+			}
+		}
+	}
 	
 	public int getMessageType() {
 		return MESG_TYPE_SYS_STATUS;

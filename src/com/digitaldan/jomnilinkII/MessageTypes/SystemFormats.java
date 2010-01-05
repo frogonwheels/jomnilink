@@ -48,6 +48,10 @@ reports the configured temperature format, time format, and date format.
           2 = DDMM
 
 	 */
+	public enum TempFormat { farenheit, celcius };
+	public enum TimeFormat { time12hr, time24hr };
+	public enum DateFormat { dateMMDD, dateDDMM };
+	
 	public SystemFormats(int tempFormat, int timeformat, int dateFormat) {
 		super();
 		this.tempFormat = tempFormat;

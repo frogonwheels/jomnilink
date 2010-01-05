@@ -17,6 +17,17 @@ package com.digitaldan.jomnilinkII.MessageTypes.properties;
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
+/*
+ * Sensor Type  Description
+ * 80           Programmable Energy Saver Module
+ * 81           Outdoor Temperature
+ * 82           Temperature
+ * 83           Temperature Alarm
+ * 84           Humidity
+ * 85           Extended Range Outdoor Temperature
+ * 86           Extended Range Temperature
+ * 87           Extended Range Temperature Alarm
+ */
 
 import com.digitaldan.jomnilinkII.MessageTypes.ObjectProperties;
 
@@ -37,6 +48,19 @@ public class AuxSensorProperties extends ObjectProperties{
 		this.highSetpoint = highSetpoint;
 		this.sensorType = sensorType;
 	}
+	public static String getSensorTypeDesc( int type) {
+		switch(type) {
+		case 80: return "Programmable Energy Saver Module";
+		case 81: return "Outdoor Temperature";
+		case 82: return "Temperature";
+		case 83: return "Temperature Alarm";
+		case 84: return "Humidity";
+		case 85: return "Extended Range Outdoor Temperature";
+		case 86: return "Extended Range Temperature";
+		case 87: return "Extended Range Temperature Alarm";
+		default: return "Unknown";
+		}
+	}
 	public int getStatus() {
 		return status;
 	}
@@ -55,18 +79,20 @@ public class AuxSensorProperties extends ObjectProperties{
 	public String toString() {
 	    final String TAB = "    ";
 	    String retValue = "";
-	    
+
 	    retValue = "AuxSensorProperties ( "
 	    	+ "number = " + this.number + TAB
+	        + "name = " + this.name + TAB
+	        + "sensorType = " + this.sensorType
+			+ " ("+getSensorTypeDesc(getSensorType())+")"+ TAB
 	        + "status = " + this.status + TAB
 	        + "current = " + this.current + TAB
 	        + "lowSetpoint = " + this.lowSetpoint + TAB
 	        + "highSetpoint = " + this.highSetpoint + TAB
-	        + "sensorType = " + this.sensorType + TAB
-	        + "name = " + this.name + TAB
 	        + " )";
 	
 	    return retValue;
 	}
 	
 }
+// vim: syntax=java.doxygen ts=4 sw=4 noet

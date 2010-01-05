@@ -21,59 +21,40 @@ package com.digitaldan.jomnilinkII.MessageTypes.properties;
 import com.digitaldan.jomnilinkII.MessageTypes.ObjectProperties;
 
 public class UnitProperties extends ObjectProperties {
-	public enum UnitType {
-		Standard,
-		Extended,
-		Compose,
-		UPB,
-		HLCRoom,
-		HLCLoad,
-		LuminaMode,
-		RadioRA,
-		CentraLite,
-		ViziaRFRoom,
-		ViziaRFLoad,
-		Flag,
-		Output,
-		AudioZone,
-		AudioSource };
-	public static UnitType unitTypeAsEnum( int type) {
+	
+	public static int UNIT_PROP_Standard = 1;
+	public static int UNIT_PROP_Extended=2;
+	public static int UNIT_PROP_Compose=3;
+	public static int UNIT_PROP_UPB =4;
+	public static int UNIT_PROP_HLCRoom=5;
+	public static int UNIT_PROP_HLCLoad=6;
+	public static int UNIT_PROP_LuminaMode=7;
+	public static int UNIT_PROP_RadioRA=8;
+	public static int UNIT_PROP_CentraLite=9;
+	public static int UNIT_PROP_ViziaRFRoom=10;
+	public static int UNIT_PROP_ViziaRFLoad=11;
+	public static int UNIT_PROP_Flag=12;
+	public static int UNIT_PROP_Output=13;
+	public static int UNIT_PROP_AudioZone=14;
+	public static int UNIT_PROP_AudioSource=15;
+	
+	public static String unitTypeAsString(int type) {
 		switch (type) {
-		case 1: return UnitType.Standard;
-		case 2: return UnitType.Extended;
-		case 3: return UnitType.Compose;
-		case 4: return UnitType.UPB;
-		case 5: return UnitType.HLCRoom;
-		case 6: return UnitType.HLCLoad;
-		case 7: return UnitType.LuminaMode;
-		case 8: return UnitType.RadioRA;
-		case 9: return UnitType.CentraLite;
-		case 10: return UnitType.ViziaRFRoom;
-		case 11: return UnitType.ViziaRFLoad;
-		case 12: return UnitType.Flag;
-		case 13: return UnitType.Output;
-		case 14: return UnitType.AudioZone;
-		case 15: return UnitType.AudioSource;
-		default: return null;
-		}		
-	}
-	public static String unitTypeAsString(UnitType type) {
-		switch (type) {
-		case Standard:    return "Standard";
-		case Extended:    return "Extended";
-		case Compose:     return "Compose";
-		case UPB:         return "UPB";
-		case HLCRoom:     return "HLC Room";
-		case HLCLoad:     return "HLC Load";
-		case LuminaMode:  return "Lumina Mode";
-		case RadioRA:     return "RadioRA";
-		case CentraLite:  return "CentraLite";
-		case ViziaRFRoom: return "ViziaRF Room";
-		case ViziaRFLoad: return "ViziaRF Load";
-		case Flag:        return "Flag";
-		case Output:      return "Output";
-		case AudioZone:   return "Audio Zone";
-		case AudioSource: return "Audio Source";
+		case 1:  return "Standard";
+		case 2:  return "Extended";
+		case 3:  return "Compose";
+		case 4:  return "UPB";
+		case 5:  return "HLC Room";
+		case 6:  return "HLC Load";
+		case 7:  return "Lumina Mode";
+		case 8:  return "RadioRA";
+		case 9:  return "CentraLite";
+		case 10: return "ViziaRF Room";
+		case 11: return "ViziaRF Load";
+		case 12: return "Flag";
+		case 13: return "Output";
+		case 14: return "Audio Zone";
+		case 15: return "Audio Source";
 		default: return "unknown";
 		}
 	}
@@ -97,9 +78,6 @@ public class UnitProperties extends ObjectProperties {
 	public int getUnitType() {
 		return unitType;
 	}
-	public UnitType getTypeOfUnit() {
-		return unitTypeAsEnum(unitType);
-	}
 	public String toString() {
 	    final String TAB = "    ";
 	    String retValue = "";
@@ -108,7 +86,7 @@ public class UnitProperties extends ObjectProperties {
 	    	+ "number = " + this.number + TAB
 	        + "state = " + this.state + TAB
 	        + "time = " + this.time + TAB
-	        + "unitType = " + this.unitType + " ("+unitTypeAsString(getTypeOfUnit())+")"+ TAB
+	        + "unitType = " + this.unitType + " ("+unitTypeAsString(unitType)+")"+ TAB
 	        + "name = " + this.name + TAB
 	        + " )";
 	

@@ -11,7 +11,14 @@ public class UPBLinkEvent extends OtherEvent {
 	public EventType getEventType() {
 		return EventType.UPBLink;
 	}
-	public enum LinkCommand { Off, On, Store, FadeStop};
+	public enum LinkCommand { Off(0,"off"), On(1,"on"), Store(2,"store"), FadeStop(3,"fade stop");
+		public final int msgNo;
+		public final String Name;
+		LinkCommand(int msgNo, String msgName){
+			this.msgNo = msgNo;
+			this.Name  = msgName;
+		}
+	};
 	
 	public LinkCommand getCommand() {
 		switch ((this.rawMessage & 0x0300) >> 8) {
@@ -23,13 +30,11 @@ public class UPBLinkEvent extends OtherEvent {
 		}
 	}
 	public String getCommandAsString() {
-		switch (getCommand()) {
-		case Off: return "off";
-		case On: return "on";
-		case Store: return "store";
-		case FadeStop: return "fade stop";
-		default: return String.format("unknown: %d",rawMessage);
-		}
+		LinkCommand val = getCommand();
+		if (val == null)
+		  return String.format("unknown: %d",rawMessage);
+		else	
+		  return val.Name;
 	}
 	public int getLinkNumber() {
 		return this.rawMessage & 0x00ff;
