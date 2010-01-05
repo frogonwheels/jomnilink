@@ -165,12 +165,12 @@ public class OmniZone extends OmniPart {
 	/** Set the zone type.
 	  */
 	public void setZoneType( ZoneType zoneType ) {
-		setZoneType(zoneType, OmniNotifyListener.NotifyType.ChangeRequest);
+		updateZoneType(zoneType, OmniNotifyListener.NotifyType.ChangeRequest);
 	}
 
 	/** Set the zone type.
 	  */
-	public void setZoneType( ZoneType zoneType, OmniNotifyListener.NotifyType notifyType ) {
+	public void updateZoneType( ZoneType zoneType, OmniNotifyListener.NotifyType notifyType ) {
 		if (zoneType != this.zone_type) {
 			this.zone_type = zoneType;
 			notify(createChangeMessage(ChangeType.ZoneType, notifyType));
@@ -184,12 +184,12 @@ public class OmniZone extends OmniPart {
 	/** set the zone area.
 	  */
 	public void setZoneArea( int zone_area ) {
-		setZoneArea(zone_area,  OmniNotifyListener.NotifyType.ChangeRequest );
+		updateZoneArea(zone_area,  OmniNotifyListener.NotifyType.ChangeRequest );
 	}
 
 	/** Set the zone area.
 	  */
-	public void setZoneArea( int zone_area, OmniNotifyListener.NotifyType notifyType ) {
+	public void updateZoneArea( int zone_area, OmniNotifyListener.NotifyType notifyType ) {
 		if (zone_area != this.zone_area) {
 			this.zone_area = zone_area;
 			notify(createChangeMessage(ChangeType.Area, notifyType));
@@ -199,25 +199,25 @@ public class OmniZone extends OmniPart {
 	/** Set from a raw omni status
 	 * @param rawstatus The raw omni status.
 	 */
-	public void setRawStatus( int rawstatus, OmniNotifyListener.NotifyType notifyType) {
+	public void updateRawStatus( int rawstatus, OmniNotifyListener.NotifyType notifyType) {
 		switch (rawstatus & 0x3) {
-		case 0: setZoneStatus(ZoneStatus.Secure, notifyType); break;
-		case 1: setZoneStatus(ZoneStatus.NotReady, notifyType); break;
-		case 2: setZoneStatus(ZoneStatus.Trouble, notifyType); break;
-		default: setZoneStatus(null, notifyType);
+		case 0: updateZoneStatus(ZoneStatus.Secure, notifyType); break;
+		case 1: updateZoneStatus(ZoneStatus.NotReady, notifyType); break;
+		case 2: updateZoneStatus(ZoneStatus.Trouble, notifyType); break;
+		default: updateZoneStatus(null, notifyType);
 		}
 		switch ((rawstatus >>2) & 0x3) {
-		case 0: setLatchAlarmStatus(LatchAlarmStatus.AlarmSecure, notifyType); break;
-		case 1: setLatchAlarmStatus(LatchAlarmStatus.AlarmTripped, notifyType);break; 
-		case 2: setLatchAlarmStatus(LatchAlarmStatus.AlarmReset, notifyType);  break;
-		default: setLatchAlarmStatus(null, notifyType);
+		case 0: updateLatchAlarmStatus(LatchAlarmStatus.AlarmSecure, notifyType); break;
+		case 1: updateLatchAlarmStatus(LatchAlarmStatus.AlarmTripped, notifyType);break; 
+		case 2: updateLatchAlarmStatus(LatchAlarmStatus.AlarmReset, notifyType);  break;
+		default: updateLatchAlarmStatus(null, notifyType);
 		}
 		switch ((rawstatus >>4) & 0x3) {
-		case 0: setAlarmStatus(AlarmStatus.Disarmed, notifyType);    break;
-		case 1: setAlarmStatus(AlarmStatus.Armed, notifyType);       break;
-		case 2: setAlarmStatus(AlarmStatus.BypassUser, notifyType);  break;
-		case 3: setAlarmStatus(AlarmStatus.BypassSystem, notifyType);break;
-		default: setAlarmStatus(null, notifyType);
+		case 0: updateAlarmStatus(AlarmStatus.Disarmed, notifyType);    break;
+		case 1: updateAlarmStatus(AlarmStatus.Armed, notifyType);       break;
+		case 2: updateAlarmStatus(AlarmStatus.BypassUser, notifyType);  break;
+		case 3: updateAlarmStatus(AlarmStatus.BypassSystem, notifyType);break;
+		default: updateAlarmStatus(null, notifyType);
 		}
 	}
 	
@@ -253,7 +253,7 @@ public class OmniZone extends OmniPart {
 	/**
 	 * @param zoneStatus the zone_status to set
 	 */
-	protected void setZoneStatus(ZoneStatus zoneStatus, OmniNotifyListener.NotifyType notifyType) {
+	protected void updateZoneStatus(ZoneStatus zoneStatus, OmniNotifyListener.NotifyType notifyType) {
 		if (zone_status != zoneStatus)  {
 			zone_status = zoneStatus;
 			this.notify(createChangeMessage(ChangeType.Status, notifyType));
@@ -268,7 +268,7 @@ public class OmniZone extends OmniPart {
 	/** Set The latched alarm status for the zone
 	 * @param latchAlarmStatus the latch_alarm_status to set
 	 */
-	protected void setLatchAlarmStatus(LatchAlarmStatus latchAlarmStatus, OmniNotifyListener.NotifyType notifyType) {
+	protected void updateLatchAlarmStatus(LatchAlarmStatus latchAlarmStatus, OmniNotifyListener.NotifyType notifyType) {
 		if (latch_alarm_status != latchAlarmStatus) {
 			latch_alarm_status = latchAlarmStatus;
 			notify(createChangeMessage(ChangeType.LatchAlarm, notifyType));
@@ -283,7 +283,7 @@ public class OmniZone extends OmniPart {
 	/** Update the alaram status
 	 * @param alarmStatus the alarm_status to set
 	 */
-	protected void setAlarmStatus(AlarmStatus alarmStatus, OmniNotifyListener.NotifyType notifyType) {
+	protected void updateAlarmStatus(AlarmStatus alarmStatus, OmniNotifyListener.NotifyType notifyType) {
 		if (alarmStatus != alarm_status) {
 			alarm_status = alarmStatus;
 			notify( createChangeMessage(ChangeType.Alarm, notifyType));
@@ -296,7 +296,7 @@ public class OmniZone extends OmniPart {
 	}
 	/** Update the loop value.
 	  */
-	public void setLoopValue( int loop, OmniNotifyListener.NotifyType notifyType) {
+	public void updateLoopValue( int loop, OmniNotifyListener.NotifyType notifyType) {
 		if (loop != this.loop) {
 			this.loop = loop;
 			notify(createChangeMessage(ChangeType.Loop, notifyType));
@@ -316,26 +316,26 @@ public class OmniZone extends OmniPart {
 	}
 	public void setCrossZoning( boolean flag) {
 		if (flag)
-			setRawOptions(options | 0x1, OmniNotifyListener.NotifyType.ChangeRequest);
+			updateRawOptions(options | 0x1, OmniNotifyListener.NotifyType.ChangeRequest);
 		else
-			setRawOptions(options & ~0x1, OmniNotifyListener.NotifyType.ChangeRequest);
+			updateRawOptions(options & ~0x1, OmniNotifyListener.NotifyType.ChangeRequest);
 	}
 	public void setSwingerShutdown( boolean flag) {
 		if (flag)
-			setRawOptions(options | 0x2, OmniNotifyListener.NotifyType.ChangeRequest);
+			updateRawOptions(options | 0x2, OmniNotifyListener.NotifyType.ChangeRequest);
 		else
-			setRawOptions(options & ~0x2, OmniNotifyListener.NotifyType.ChangeRequest);
+			updateRawOptions(options & ~0x2, OmniNotifyListener.NotifyType.ChangeRequest);
 	}
 	public void setDialOutDelay( boolean flag) {
 		if (flag)
-			setRawOptions(options | 0x4, OmniNotifyListener.NotifyType.ChangeRequest);
+			updateRawOptions(options | 0x4, OmniNotifyListener.NotifyType.ChangeRequest);
 		else
-			setRawOptions(options & ~0x4, OmniNotifyListener.NotifyType.ChangeRequest);
+			updateRawOptions(options & ~0x4, OmniNotifyListener.NotifyType.ChangeRequest);
 	}
 	public int getRawOptions() {
 		return options;
 	}
-	public void setRawOptions( int options, OmniNotifyListener.NotifyType notifyType ) {
+	public void updateRawOptions( int options, OmniNotifyListener.NotifyType notifyType ) {
 		if (options != this.options) {
 			options = this.options;
 			notify(createChangeMessage(ChangeType.Options, notifyType));

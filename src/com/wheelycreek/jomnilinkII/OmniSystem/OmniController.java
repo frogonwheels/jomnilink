@@ -265,38 +265,45 @@ public class OmniController implements OmniNotifyListener {
 		}
 	}
 	
+	/** Receive a Unit status change message.
+	 * @param status
+	 */
 	private void unitStatusReceive(UnitStatus status) {
-
 		if (getDebugChan(dcUnits))
 			System.out.println("Unit Changed: "+status.toString());
 		
-		int senseidx = status.getNumber()-1;
-		
-		OmniUnit Unit = units.get(senseidx);
+		OmniUnit Unit = units.get(status.getNumber());
 		if (Unit != null)
 			updateUnit(status, Unit, false);
 	}
-	
+	/** Update the unit from the UnitStatus
+	 * @param status    The unit status object.
+	 * @param unit      The destination OmniUnit object.
+	 * @param isInitial  True if this is the initial value.
+	 */
 	private void updateUnit(UnitStatus status, OmniUnit unit, boolean isInitial) {
 		OmniNotifyListener.NotifyType notifyType = msgType(isInitial);
-		unit.setState(status.getStatus(), notifyType);
-		unit.setTimeSec(status.getTime(), notifyType);
+		unit.updateState(status.getStatus(), notifyType);
+		unit.updateTimeSec(status.getTime(), notifyType);
 	}
+	/** Update the unit from the unit Properties.
+	 * @param props   The unit properties object
+	 * @param unit    The destination OmniUnit object
+	 * @param isInitial True if this is the initial value.
+	 */
 	private void updateUnit(UnitProperties props, OmniUnit unit, boolean isInitial) {
 		OmniNotifyListener.NotifyType notifyType = msgType(isInitial);
-		unit.setName(props.getName(), notifyType);
-		unit.setUnitType( OmniUnit.UnitType.typeAsEnum(props.getUnitType()), notifyType);
-		unit.setState(props.getState(), notifyType);
-		unit.setTimeSec(props.getTime(), notifyType);
+		unit.updateName(props.getName(), notifyType);
+		unit.updateUnitType( OmniUnit.UnitType.typeAsEnum(props.getUnitType()), notifyType);
+		unit.updateState(props.getState(), notifyType);
+		unit.updateTimeSec(props.getTime(), notifyType);
 	}
 	private void sensorStatusReceive(AuxSensorStatus status) {
 		
 		if (getDebugChan(dcSensors))
 			System.out.println("Sensor Changed: "+status.toString());
-		
-		int senseidx = status.getNumber()-1;
-		
-		OmniSensor sensor = sensors.get(senseidx);
+
+		OmniSensor sensor = sensors.get(status.getNumber());
 		if (sensor != null)
 			updateSensor(status, sensor, false);
 		
@@ -371,19 +378,19 @@ public class OmniController implements OmniNotifyListener {
 	}
 	protected void updateZone(ZoneStatus status, OmniZone zone, boolean isInitial ) {
 		if (zone != null)  {
-			zone.setRawStatus(status.getStatus(), msgType(isInitial));
+			zone.updateRawStatus(status.getStatus(), msgType(isInitial));
 		}
 	}
 	
 	protected void updateZone(ZoneProperties prop, OmniZone zone, boolean isInitial ) {
 		if (zone != null)  {
 			OmniNotifyListener.NotifyType notifyType = msgType(isInitial);
-			zone.setName(prop.getName(), notifyType);
-			zone.setZoneType(OmniZone.ZoneType.typeAsEnum(prop.getZoneType()), notifyType);
-			zone.setRawOptions(prop.getOptions(), notifyType);
-			zone.setZoneArea(prop.getArea(), notifyType);
-			zone.setLoopValue(prop.getLoop(), notifyType);
-			zone.setRawStatus(prop.getStatus(), notifyType);
+			zone.updateName(prop.getName(), notifyType);
+			zone.updateZoneType(OmniZone.ZoneType.typeAsEnum(prop.getZoneType()), notifyType);
+			zone.updateRawOptions(prop.getOptions(), notifyType);
+			zone.updateZoneArea(prop.getArea(), notifyType);
+			zone.updateLoopValue(prop.getLoop(), notifyType);
+			zone.updateRawStatus(prop.getStatus(), notifyType);
 		}
 	}
 	protected void loadSensors() throws Exception, IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
@@ -459,31 +466,38 @@ public class OmniController implements OmniNotifyListener {
 		return isInitial?OmniNotifyListener.NotifyType.Initial:OmniNotifyListener.NotifyType.Notify;
 	}
 	/** Update values for the sensor.
-	 * @param sensestat  The communication representation of the sensor
+	 * @param sensestat  The Sensor Status message object
 	 * @param sense      The exposed omni sensor
-	 * @param isInitial  Is this the initial update for the sensor 
+	 * @param isInitial  Is this the initial update for the sensor.
 	 */
 	protected void updateSensor(AuxSensorStatus sensestat, OmniSensor sense, boolean isInitial) {
 		if (sense != null) {
 			OmniNotifyListener.NotifyType notifyType = msgType(isInitial);
-			sense.setCoolSetPoint(new Temperature(sensestat.getCoolSetpoint()), notifyType); 
-			sense.setHeatSetPoint(new Temperature(sensestat.getHeatSetpoint()), notifyType);
-			sense.setTemperature(new Temperature(sensestat.getTemp()), notifyType);
-			sense.setTriggerOutput(sensestat.getStatus() != 0, notifyType);
+			sense.updateCoolSetPoint(new Temperature(sensestat.getCoolSetpoint()), notifyType); 
+			sense.updateHeatSetPoint(new Temperature(sensestat.getHeatSetpoint()), notifyType);
+			sense.updateTemperature(new Temperature(sensestat.getTemp()), notifyType);
+			sense.updateTriggerOutput(sensestat.getStatus() != 0, notifyType);
 		}
 	}
+	/** Update values for the sensor.
+	  * @param senseprop  The sensor properties (includes status).
+	  * @param sense      The exposed omni sensor
+	  * @param isInitial  Is this the initial update for the sensor.
+	  */
 	protected void updateSensor(AuxSensorProperties senseprop, OmniSensor sense, boolean isInitial) {
 		if (sense != null) {
-			sense.setName(senseprop.getName());
-			sense.setSensorType(OmniSensor.SensorType.typeAsEnum(senseprop.getSensorType()));
 			OmniNotifyListener.NotifyType notifyType = msgType(isInitial);
-			sense.setCoolSetPoint(new Temperature(senseprop.getLowSetpoint()), notifyType); 
-			sense.setHeatSetPoint(new Temperature(senseprop.getHighSetpoint()), notifyType);
-			sense.setTemperature(new Temperature(senseprop.getCurrent()), notifyType);
-			sense.setTriggerOutput(senseprop.getStatus() != 0, notifyType);
+			sense.updateName(senseprop.getName(),notifyType );
+			sense.updateSensorType(OmniSensor.SensorType.typeAsEnum(senseprop.getSensorType()), notifyType);
+			sense.updateCoolSetPoint(new Temperature(senseprop.getLowSetpoint()), notifyType); 
+			sense.updateHeatSetPoint(new Temperature(senseprop.getHighSetpoint()), notifyType);
+			sense.updateTemperature(new Temperature(senseprop.getCurrent()), notifyType);
+			sense.updateTriggerOutput(senseprop.getStatus() != 0, notifyType);
 		}
 	}
 
+	/** Receive a single 'OtherEvent' type message.
+	  */
 	protected void otherEventReceive( OtherEvent event) {
 		if (getDebugChan(dcMessage))
 			System.out.println(event.toString());	
@@ -491,7 +505,7 @@ public class OmniController implements OmniNotifyListener {
 			case UserMacroButton: {
 				OmniButton ob = buttons.get(((UserMacroButtonEvent)event).getButtonNumber());
 				if (ob != null) {
-					ob.notifyButton();
+					ob.notifyPress();
 				}
 			}
 			case ProlinkMessage:

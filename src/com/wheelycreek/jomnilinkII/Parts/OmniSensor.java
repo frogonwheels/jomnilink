@@ -92,8 +92,7 @@ public class OmniSensor extends OmniPart {
 	protected OmniNotifyListener.ChangeMessage createChangeMessage( ChangeType changetype, OmniNotifyListener.NotifyType notifyType) {
 		return new SensorChangeMessage(area, number, notifyType, changetype);
 	}
-	
-	
+
 	private boolean trigger_output;
 	private Temperature temp, heatSet, coolSet;
 	private SensorType sensor_type;
@@ -105,18 +104,18 @@ public class OmniSensor extends OmniPart {
 		return trigger_output;
 	}
 	public void setTriggerOutput(boolean triggerOutput) {
-		setTriggerOutput(triggerOutput, OmniNotifyListener.NotifyType.ChangeRequest);
+		updateTriggerOutput(triggerOutput, OmniNotifyListener.NotifyType.ChangeRequest);
 	}
 	/**
 	 * @param triggerOutput the trigger_output to set
 	 */
-	public void setTriggerOutput(boolean triggerOutput, OmniNotifyListener.NotifyType notifyType) {
+	public void updateTriggerOutput(boolean triggerOutput, OmniNotifyListener.NotifyType notifyType) {
 		if (trigger_output != triggerOutput) {
 			trigger_output = triggerOutput;
 			notify(createChangeMessage(ChangeType.Status, notifyType ));
 		}
 	}
-	/**
+	/** The current temperature.
 	 * @return the temperature
 	 */
 	public Temperature getTemperature() {
@@ -128,7 +127,7 @@ public class OmniSensor extends OmniPart {
 	 * @param temp the temperature to set
 	 */
 	public void setTemperature(Temperature temp) {
-		setTemperature(temp, OmniNotifyListener.NotifyType.ChangeRequest);
+		updateTemperature(temp, OmniNotifyListener.NotifyType.ChangeRequest);
 	}
 	/** Return true if two temperatures are different.
 	  * Allows for nulls.
@@ -138,33 +137,35 @@ public class OmniSensor extends OmniPart {
 	}
 	/** Update the temperature.
 	  */
-	public void setTemperature(Temperature temp, OmniNotifyListener.NotifyType notifyType) {
+	public void updateTemperature(Temperature temp, OmniNotifyListener.NotifyType notifyType) {
 		if (isDifferent(this.temp,temp)) {
 			this.temp = temp;
 			notify(createChangeMessage(ChangeType.Temperature, notifyType));
 		}
 	}
-	/**
-	 * @return the heatSet
+	/** The heat set-point temperature.
+	 * @return the heat SetPoint
 	 */
 	public Temperature getHeatSetPoint() {
 		if (heatSet == null)
 			heatSet = new Temperature();
 		return heatSet;
 	}
-	/**
-	 * @param heatSet the heatSet to set
+
+	/** Change the heat set-point temperature.
+	 * @param heatSet the temperature to set
 	 */
 	public void setHeatSetPoint(Temperature heatSet) {
-		setHeatSetPoint(heatSet, OmniNotifyListener.NotifyType.ChangeRequest);
+		updateHeatSetPoint(heatSet, OmniNotifyListener.NotifyType.ChangeRequest);
 	}
-	public void setHeatSetPoint(Temperature temp, OmniNotifyListener.NotifyType notifyType) {
+	public void updateHeatSetPoint(Temperature temp, OmniNotifyListener.NotifyType notifyType) {
 		if (isDifferent(this.heatSet,temp)) {
 			this.heatSet = temp;
 			notify(createChangeMessage(ChangeType.HeatSet, notifyType));
 		}
 	}
-	/**
+
+	/** The cooling set-point temperature.
 	 * @return the coolSet
 	 */
 	public Temperature getCoolSetPoint() {
@@ -172,13 +173,13 @@ public class OmniSensor extends OmniPart {
 			coolSet = new Temperature();
 		return coolSet;
 	}
-	/**
-	 * @param coolSet the coolSet to set
+	/** Change the cooling set-point temperature.
+	 * @param coolSet the temperature to set
 	 */
 	public void setCoolSetPoint(Temperature coolSet) {
-		setCoolSetPoint(coolSet, OmniNotifyListener.NotifyType.ChangeRequest);
+		updateCoolSetPoint(coolSet, OmniNotifyListener.NotifyType.ChangeRequest);
 	}
-	public void setCoolSetPoint(Temperature temp, OmniNotifyListener.NotifyType notifyType) {
+	public void updateCoolSetPoint(Temperature temp, OmniNotifyListener.NotifyType notifyType) {
 		if (isDifferent(this.coolSet,temp)) {
 			this.coolSet = temp;
 			notify(createChangeMessage(ChangeType.CoolSet, notifyType));
@@ -194,13 +195,13 @@ public class OmniSensor extends OmniPart {
 	 * @param type The type of sensor.
 	 */
 	public void setSensorType( SensorType type) {
-		setSensorType(type, OmniNotifyListener.NotifyType.ChangeRequest);
+		updateSensorType(type, OmniNotifyListener.NotifyType.ChangeRequest);
 	}
 	/** Set the sensor type.
 	 * @param type The type of sensor.
 	 * @param notifyType Is this the initial setting.
 	 */
-	public void setSensorType( SensorType type, OmniNotifyListener.NotifyType notifyType) {
+	public void updateSensorType( SensorType type, OmniNotifyListener.NotifyType notifyType) {
 		if (type != sensor_type) {
 			sensor_type = type;
 			notify(createChangeMessage(ChangeType.Type, notifyType));

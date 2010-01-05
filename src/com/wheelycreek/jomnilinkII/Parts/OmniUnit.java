@@ -111,9 +111,9 @@ public class OmniUnit extends OmniPart {
 	 * @param state the state to set
 	 */
 	public void setState(int state) {
-		setState(state, OmniNotifyListener.NotifyType.ChangeRequest);
+		updateState(state, OmniNotifyListener.NotifyType.ChangeRequest);
 	}
-	public void setState(int state, OmniNotifyListener.NotifyType notifyType) {
+	public void updateState(int state, OmniNotifyListener.NotifyType notifyType) {
 		if (state != this.state) {
 			this.state = state;
 			notify(createChangeMessage(ChangeType.State, notifyType));
@@ -131,9 +131,9 @@ public class OmniUnit extends OmniPart {
 	 * @param timeSec the time_sec to set
 	 */
 	public void setTimeSec(int timeSec) {
-		setTimeSec(timeSec, OmniNotifyListener.NotifyType.ChangeRequest);
+		updateTimeSec(timeSec, OmniNotifyListener.NotifyType.ChangeRequest);
 	}
-	public void setTimeSec(int timeSec, OmniNotifyListener.NotifyType notifyType) {
+	public void updateTimeSec(int timeSec, OmniNotifyListener.NotifyType notifyType) {
 		if (time_sec != timeSec) {
 			time_sec = timeSec;
 			notify(createChangeMessage(ChangeType.Time, notifyType));
@@ -151,9 +151,9 @@ public class OmniUnit extends OmniPart {
 	 * @param unitType the unit_type to set
 	 */
 	public void setUnitType(UnitType unitType) {
-		setUnitType(unitType, OmniNotifyListener.NotifyType.ChangeRequest);
+		updateUnitType(unitType, OmniNotifyListener.NotifyType.ChangeRequest);
 	}
-	public void setUnitType(UnitType unitType, OmniNotifyListener.NotifyType notifyType) {
+	public void updateUnitType(UnitType unitType, OmniNotifyListener.NotifyType notifyType) {
 		if (unitType != this.unit_type) {
 			unit_type = unitType;
 			notify(createChangeMessage(ChangeType.UnitType, notifyType));

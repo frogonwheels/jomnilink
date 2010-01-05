@@ -26,7 +26,7 @@ import com.wheelycreek.jomnilinkII.OmniSystem.OmniArea;
 
 
 /** Omni controller element base class.
- * handles notification mechanism. 
+ * Handles notification mechanism and name changes.
  * @author michaelg
  */
 public class OmniPart {
@@ -37,10 +37,11 @@ public class OmniPart {
 	  */
 	public class NameChangeMessage extends OmniNotifyListener.ChangeMessage {
 		
-		public NameChangeMessage(OmniArea area, int number, OmniNotifyListener.NotifyType notifyType) {
+		public NameChangeMessage(OmniArea area, int number, String name, OmniNotifyListener.NotifyType notifyType) {
 			super(area, number, notifyType);
+			this.name = name;
 		}
-
+		public String name;
 		/* (non-Javadoc)
 		 * @see java.lang.Object#toString()
 		 */
@@ -82,16 +83,18 @@ public class OmniPart {
 	}
 	/** Construct a basic change message.
 	 * Generally a more specific change message would be constructed.
-	 * @param changeType
-	 * @return
+	 * @param notifyType The type of notification.
 	 */
 	protected OmniNotifyListener.ChangeMessage createChangeMessage(OmniNotifyListener.NotifyType notifyType) {
 		OmniNotifyListener.ChangeMessage msg = new OmniNotifyListener.ChangeMessage(area, number, notifyType);
 
 		return msg;
 	}
+	/** Construct a name change message.
+	  * @param notifyType The type of notification.
+	  */
 	protected OmniNotifyListener.ChangeMessage createNameMessage(OmniNotifyListener.NotifyType notifyType) {
-		return new NameChangeMessage(area, number, notifyType);
+		return new NameChangeMessage(area, number, part_name, notifyType);
 	}
 	/** Called by derived class property setters to notify of changes.
 	 * @param message
@@ -103,23 +106,24 @@ public class OmniPart {
 			}
 		}
 	}
-	/** Change the name of a unit.
+	/** Change the name of a part.
 	 * @param part_name
 	 */
 	public void setName(String part_name) {
-		setName(part_name, OmniNotifyListener.NotifyType.ChangeRequest);
+		updateName(part_name, OmniNotifyListener.NotifyType.ChangeRequest);
 	}
-	/**
+	/** Update the name of a part.
 	 * @param part_name the name to set
+	 * @param notifyType the type of change notification
 	 */
-	public void setName(String part_name, OmniNotifyListener.NotifyType notifyType) {
+	public void updateName(String part_name, OmniNotifyListener.NotifyType notifyType) {
 		if (this.part_name != part_name) {
 			this.part_name = part_name;
 			notify(createNameMessage(notifyType));
 		}
 	}
-	/**
-	 * @return the zone_name
+	/** The name of the part.
+	 * @return part_name
 	 */
 	public String getName() {
 		return part_name;

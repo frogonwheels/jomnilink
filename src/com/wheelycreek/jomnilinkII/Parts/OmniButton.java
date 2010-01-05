@@ -29,19 +29,31 @@ import com.wheelycreek.jomnilinkII.OmniSystem.OmniArea;
 public class OmniButton extends OmniPart {
 	
 	public class ButtonPressMessage extends OmniNotifyListener.ChangeMessage {
-		public ButtonPressMessage(int number) {
-			super(OmniArea.Button, number, OmniNotifyListener.NotifyType.Notify);
+		public ButtonPressMessage(int number, OmniNotifyListener.NotifyType notifyType) {
+			super(OmniArea.Button, number, notifyType);
 		}
 	}
-	private OmniNotifyListener.ChangeMessage createChangeMessage() {
-		return new ButtonPressMessage(number);
+	protected OmniNotifyListener.ChangeMessage createChangeMessage(OmniNotifyListener.NotifyType notifyType) {
+		return new ButtonPressMessage(number, notifyType);
 	}
-	public void notifyButton() {
-		notify(createChangeMessage());
-	};
+
+	/** Construct a button for a number.
+	  */
 	public OmniButton(int number) {
 		super(number, OmniArea.Button);
 	}
+
+	/** Trigger a button.
+	  */
+	public void trigger() {
+		notify(createChangeMessage(OmniNotifyListener.NotifyType.ChangeRequest));
+	}
+
+	/** Notify a button was pressed.
+	  */
+	public void notifyPress() {
+		notify(createChangeMessage(OmniNotifyListener.NotifyType.Notify));
+	};
 };
 
 // vim: syntax=java.doxygen ts=4 sw=4 noet
