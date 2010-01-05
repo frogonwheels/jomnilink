@@ -18,12 +18,11 @@ package com.digitaldan.jomnilinkII.examples;
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-import java.io.IOException;
+//import java.io.IOException;
 
 import com.digitaldan.jomnilinkII.Connection;
 import com.digitaldan.jomnilinkII.DisconnectListener;
 import com.digitaldan.jomnilinkII.Message;
-import com.digitaldan.jomnilinkII.MessageUtils;
 import com.digitaldan.jomnilinkII.NotificationListener;
 import com.digitaldan.jomnilinkII.OmniInvalidResponseException;
 import com.digitaldan.jomnilinkII.OmniNotConnectedException;
@@ -41,8 +40,6 @@ import com.digitaldan.jomnilinkII.MessageTypes.statuses.UnitStatus;
 import com.digitaldan.jomnilinkII.MessageTypes.statuses.ZoneStatus;
 
 
-
-
 public class Main {
 
 	public static void main(String[] args) {
@@ -56,6 +53,7 @@ public class Main {
 			String key = args[2];
 			Message m;
 			Connection c = new Connection(host,port,key);
+			
 			//c.debug = true;
 			c.addNotificationListener(new NotificationListener(){
 				public void objectStausNotification(ObjectStatus s) {
@@ -82,7 +80,8 @@ public class Main {
 								System.out.println("STATUS_UNIT changed");
 								break;
 							case Message.OBJ_TYPE_ZONE:
-								System.out.println("STATUS_ZONE changed");
+								System.out.println("STATUS_ZONE changed!");
+								
 								break;
 							default:
 								System.out.println("Unknown type " + s.getStatusType());
@@ -93,9 +92,8 @@ public class Main {
 				@Override
 				public void otherEventNotification(OtherEventNotifications o) {
 					System.out.println("Other Event");
-					for(int k=0;k<o.getNotifications().length;k++){
-						System.out.println("Event bits " + 
-								MessageUtils.getBits(o.getNotifications()[k]));
+					for(int k=0;k<o.Count();k++){
+						System.out.println(o.getNotification(k).toString());
 					}
 				}
 			});
@@ -117,8 +115,8 @@ public class Main {
 			int max_zones = c.reqObjectTypeCapacities(Message.OBJ_TYPE_ZONE).getCapacity();
 			int max_units = c.reqObjectTypeCapacities(Message.OBJ_TYPE_UNIT).getCapacity();
 			int max_areas = c.reqObjectTypeCapacities(Message.OBJ_TYPE_AREA).getCapacity();
-			int max_buttons = c.reqObjectTypeCapacities(Message.OBJ_TYPE_BUTTON).getCapacity();
-			int max_codes = c.reqObjectTypeCapacities(Message.OBJ_TYPE_CODE).getCapacity();
+			//int max_buttons = c.reqObjectTypeCapacities(Message.OBJ_TYPE_BUTTON).getCapacity();
+			//int max_codes = c.reqObjectTypeCapacities(Message.OBJ_TYPE_CODE).getCapacity();
 			int max_thermos = c.reqObjectTypeCapacities(Message.OBJ_TYPE_THERMO).getCapacity();
 			int max_mesgs = c.reqObjectTypeCapacities(Message.OBJ_TYPE_MESG).getCapacity();
 			int max_audio_zones = c.reqObjectTypeCapacities(Message.OBJ_TYPE_AUDIO_ZONE).getCapacity();
@@ -194,16 +192,19 @@ public class Main {
 			for(int i=0;i<areas.length;i++){
 				System.out.println(areas[i].toString());
 			}
-			status = c.reqObjectStatus(Message.OBJ_TYPE_THERMO,1,9);
-			ThermostatStatus [] thermos = (ThermostatStatus[])status.getStatuses();
-			for(int i=0;i<thermos.length;i++){
-				System.out.println(thermos[i].toString());
+			try {
+				status = c.reqObjectStatus(Message.OBJ_TYPE_THERMO,1,max_thermos);
+				ThermostatStatus [] thermos = (ThermostatStatus[])status.getStatuses();
+				for(int i=0;i<thermos.length;i++){
+					System.out.println(thermos[i].toString());
+				}
+			} catch (OmniInvalidResponseException e){
 			}
-			 status = c.reqObjectStatus(Message.OBJ_TYPE_MESG,1,max_mesgs);
-			 MessageStatus [] megs = (MessageStatus[])status.getStatuses();
-			 for(int i=0;i<megs.length;i++){
-				 System.out.println(megs[i].toString());
-			 }
+			status = c.reqObjectStatus(Message.OBJ_TYPE_MESG,1,max_mesgs);
+			MessageStatus [] megs = (MessageStatus[])status.getStatuses();
+			for(int i=0;i<megs.length;i++){
+				System.out.println(megs[i].toString());
+			}
 			status = c.reqObjectStatus(Message.OBJ_TYPE_AUX_SENSOR,1,max_zones);
 			AuxSensorStatus [] auxs = (AuxSensorStatus[])status.getStatuses();
 			for(int i=0;i<auxs.length;i++){
