@@ -496,11 +496,10 @@ public class MessageFactory {
 	}
 	
 	private static String readName(byte [] nameBytes){
-		String name = new String(nameBytes);
-		if(name.indexOf('\0') >=0){
-			name = name.substring(0,name.indexOf('\0'));
-		}
-		return name;
+		int len=0;
+		while (len < nameBytes.length && nameBytes[len] != 0)
+			++len;
+		return new String(nameBytes,0,len);
 	}
 	protected static ObjectProperties objectProperties(DataInputStream in, int length) throws IOException{
 		int objectType = in.readUnsignedByte();
@@ -595,15 +594,22 @@ public class MessageFactory {
 		}
 	}
 	
+	protected static String readString(DataInputStream in, int length) throws IOException {
+		
+		byte [] data = new byte[length];
+		in.readFully(data);
+		// Stop at first null
+		return readName(data);
+	}
+	
 	protected static AudioSourceStatus audioSourceStatus(DataInputStream in, int length) throws IOException{
 		
 		int srcNumber = in.readUnsignedShort();
 		int seqNumber = in.readUnsignedByte();
 		int pos = in.readUnsignedByte();
 		int fieldId = in.readUnsignedByte();
-		byte [] data = new byte[length - 5];
-		in.readFully(data);
-		String sourceData = new String(data);
+		
+		String sourceData = readString(in, length-5);
 		return new AudioSourceStatus(srcNumber,seqNumber,pos,fieldId,sourceData);
 	}
 	
@@ -648,9 +654,7 @@ public class MessageFactory {
 		
 		int objectType = in.readUnsignedByte();
 		int objectNumber = in.readUnsignedShort();
-		byte [] data = new byte[length - 3];
-		in.readFully(data);
-		String name = new String(data);
+		String name = readString(in, length-3);
 		return new NameData(objectType,objectNumber, name);
 	}
 	
