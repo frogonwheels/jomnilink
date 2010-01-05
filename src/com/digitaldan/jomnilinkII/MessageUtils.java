@@ -95,4 +95,13 @@ public class MessageUtils {
 		public static int omniToHumidity(int temp){
 			 return omniToF(temp);
 		}
+		public static double TempInCelcius(int omniTemp) {
+			return (omniTemp-80)/2.0;
+		}
+		public static String TempInCelciusString(int omniTemp) {
+			if (omniTemp == 0) 
+				return "unset";
+			else
+				return TempInCelcius(omniTemp)+" ℃";
+		} 
 }
