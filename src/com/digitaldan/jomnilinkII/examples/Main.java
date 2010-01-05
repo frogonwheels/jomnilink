@@ -233,8 +233,12 @@ public class Main {
 				count++;
 			}
 
-			System.out.println(c.uploadNames(Message.OBJ_TYPE_UNIT, 0).toString());
+			System.out.println(c.receiveName(Message.OBJ_TYPE_UNIT, 0).toString());
+			System.out.println(c.receiveName(Message.OBJ_TYPE_UNIT, 1).toString());
+			//System.out.println(c.uploadNames(Message.OBJ_TYPE_, 0).toString());
+			
 			System.out.println(c.reqSecurityCodeValidation(1, 1, 2, 3, 4).toString());
+			
 			
 			System.out.println("All Done, OmniConnection thread now running");
 			

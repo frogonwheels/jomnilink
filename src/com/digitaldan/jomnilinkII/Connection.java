@@ -684,17 +684,43 @@ public class Connection extends Thread {
 			throw new OmniInvalidResponseException(msg);
 		return msg;
 	}
+	
 
+	@Deprecated
 	public Message uploadNames(int objectType, int objectNumber) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
+		return receiveName(objectType, objectNumber);
+	}
+	/** Get the name of an object.
+	 * @param objectType Type of object
+	 * @param objectNumber Number of object
+	 * @return Message containing the name.
+	 * @throws IOException
+	 * @throws OmniNotConnectedException
+	 * @throws OmniInvalidResponseException
+	 * @throws OmniUnknownMessageTypeException
+	 */
+	public Message receiveName(int objectType, int objectNumber) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
 		Message msg = sendAndReceive(new UploadNames(objectType,objectNumber));
 		if(msg.getMessageType() != Message.MESG_TYPE_NAME_DATA &&
 				msg.getMessageType() != Message.MESG_TYPE_END_OF_DATA)
 			throw new OmniInvalidResponseException(msg);
 		return msg;
 	}
-
-
+	
+	@Deprecated
 	public void downloadNames(int objectType, int objectNumber, String name) throws IOException, OmniNotConnectedException , OmniInvalidResponseException, OmniUnknownMessageTypeException {
+		sendName(objectType, objectNumber, name);
+	} 
+	/** Set the name of an object.
+	 * @param objectType Type of object
+	 * @param objectNumber Number of the object
+	 * @param name New name
+	 * @throws IOException
+	 * @throws OmniNotConnectedException
+	 * @throws OmniInvalidResponseException
+	 * @throws OmniUnknownMessageTypeException
+	 */
+	public void sendName(int objectType, int objectNumber, String name) throws IOException, OmniNotConnectedException , OmniInvalidResponseException, OmniUnknownMessageTypeException {
 		Message msg = sendAndReceive(new DownloadNames(objectType,objectNumber,name));
 		if(msg.getMessageType() != Message.MESG_TYPE_ACK)
 			throw new OmniInvalidResponseException(msg);
