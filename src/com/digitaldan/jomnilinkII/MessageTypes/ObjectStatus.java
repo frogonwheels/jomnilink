@@ -52,6 +52,16 @@ public class ObjectStatus implements Message{
 	public Status[] getStatuses() {
 		return statuses;
 	}
+	
+	public String statusString() {
+		String retValue = "";
+		for (int idx =0; idx < statuses.length; ++idx) {
+			if (idx > 0)
+			  retValue = retValue + ", ";
+			retValue = retValue + statuses[idx].toString(); 
+		}
+		return retValue;
+	}
 
 	public String toString() {
 	    final String TAB = "    ";
@@ -59,7 +69,7 @@ public class ObjectStatus implements Message{
 	    
 	    retValue = "ObjectStatus ( "
 	        + "statusType = " + this.statusType + TAB
-	        + "statuses = " + this.statuses + TAB
+	        + "statuses = " + statusString() /*this.statuses*/ + TAB
 	        + " )";
 	
 	    return retValue;
