@@ -52,7 +52,7 @@ import com.digitaldan.jomnilinkII.MessageTypes.SystemStatus;
 import com.digitaldan.jomnilinkII.MessageTypes.SystemTroubles;
 import com.digitaldan.jomnilinkII.MessageTypes.ZoneReadyStatus;
 import com.wheelycreek.jomnilinkII.OmniNotifyListener;
-//import com.wheelycreek.jomnilinkII.OmniPart;
+import com.wheelycreek.jomnilinkII.OmniPart;
 import com.wheelycreek.jomnilinkII.OmniPart.NameChangeMessage;
 import com.wheelycreek.jomnilinkII.Parts.OmniZone;
 import com.wheelycreek.jomnilinkII.Parts.OmniSensor;
@@ -621,11 +621,21 @@ public class OmniController implements OmniNotifyListener {
 	public String getName(OmniArea area, int index) throws OmniNotConnectedException, Exception {
 		if (index < 0)
 			return null;
+		OmniPart part = null;
+		switch (area) {
+		case Zone:     part = zones.get(index); break;
+		case Button:   part = buttons.get(index); break;
+		case Sensor:   part = sensors.get(index); break;
+		case Unit:     part = units.get(index); break;
+		}
+		if (part != null)
+			return part.getName();
+		
 		Vector<String> vectors = get_vectors(area);
-		if (vectors == null)
-			return null;
-		else
+		if (vectors != null)
 			return vectors.get(index-1);
+		else
+			return null;
 	}
 	
 
