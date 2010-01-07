@@ -402,10 +402,8 @@ public class OmniController implements OmniNotifyListener {
 	protected void zoneStatusReceive( ZoneStatus status) {
 		if (getDebugChan(dcZones))
 			System.out.println("Zone Changed: "+status.toString());
-		int zoneidx = status.getNumber()-1;
-		if (zoneidx < zones.size()) {
-			updateZone(status, zones.get(zoneidx), false);
-		}
+		
+		updateZone(status, zones.get(status.getNumber()), false);
 	}
 	protected void updateZone(ZoneStatus status, OmniZone zone, boolean isInitial ) {
 		if (zone != null)  {
