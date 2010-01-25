@@ -19,6 +19,7 @@
 package com.wheelycreek.jomnilinkII.Parts;
 
 import com.digitaldan.jomnilinkII.MessageTypes.properties.UnitProperties;
+import com.digitaldan.jomnilinkII.MessageTypes.statuses.UnitStatus;
 import com.wheelycreek.jomnilinkII.OmniPart;
 import com.wheelycreek.jomnilinkII.OmniSystem.OmniArea;
 import com.wheelycreek.jomnilinkII.OmniNotifyListener;
@@ -162,6 +163,26 @@ public class OmniUnit extends OmniPart {
 	private int state;
 	private int time_sec;
 	private UnitType unit_type;
+
+	/** Update the unit from the unit Properties.
+	 * @param props   The unit properties object
+	 * @param unit    The destination OmniUnit object
+	 * @param isInitial True if this is the initial value.
+	 */
+	public void update(UnitProperties props, OmniNotifyListener.NotifyType notifyType) {
+		this.updateName(props.getName(), notifyType);
+		this.updateUnitType( UnitType.typeAsEnum(props.getUnitType()), notifyType);
+		this.updateStatus(props.getState(), props.getTime(), notifyType);
+	}
+
+	/** Update the unit from the UnitStatus
+	 * @param status    The unit status object.
+	 * @param unit      The destination OmniUnit object.
+	 * @param isInitial  True if this is the initial value.
+	 */
+	public void update(UnitStatus status,OmniNotifyListener.NotifyType notifyType) {
+		this.updateStatus(status.getStatus(), status.getTime(), notifyType);
+	}
 
 }
 // vim: syntax=java.doxygen ts=4 sw=4 noet

@@ -19,10 +19,12 @@
  */
 package com.wheelycreek.jomnilinkII.Parts;
 
+import com.digitaldan.jomnilinkII.MessageTypes.properties.AuxSensorProperties;
+import com.digitaldan.jomnilinkII.MessageTypes.statuses.AuxSensorStatus;
+import com.wheelycreek.jomnilinkII.OmniNotifyListener;
 import com.wheelycreek.jomnilinkII.OmniPart;
 import com.wheelycreek.jomnilinkII.OmniSystem.OmniArea;
 import com.wheelycreek.jomnilinkII.OmniSystem.Temperature;
-import com.wheelycreek.jomnilinkII.OmniNotifyListener;
 
 /** Omni Temperature sensor.
  * @author michaelg
@@ -83,10 +85,25 @@ public class OmniSensor extends OmniPart {
 	public class SensorChangeMessage extends OmniNotifyListener.ChangeMessage {
 		public ChangeType change_type;
 
+		/** Create a change message for a sensor
+		 * @param area  The area. 
+		 * @param number  The number of the sensor.
+		 * @param notifyType  The source of the notificatio
+		 * @param changeType The type of change
+		 */
 		public SensorChangeMessage(OmniArea area, int number, OmniNotifyListener.NotifyType notifyType,
 				ChangeType changeType) {
 			super(area, number, notifyType);
 			change_type = changeType;
+		}
+		/* (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			return String.format(
+							"SensorChangeMessage [area=%s, number=%s, notifyType=%s, change_type=%s]",
+							area, number, notifyType, change_type);
 		}
 	}
 	protected OmniNotifyListener.ChangeMessage createChangeMessage( ChangeType changetype, OmniNotifyListener.NotifyType notifyType) {
@@ -206,6 +223,28 @@ public class OmniSensor extends OmniPart {
 			sensor_type = type;
 			notify(createChangeMessage(ChangeType.Type, notifyType));
 		}
+	}
+	/** Update values for the sensor.
+	  * @param senseprop  The sensor properties (includes status).
+	  */
+	public void update(AuxSensorProperties senseprop, OmniNotifyListener.NotifyType notifyType) {
+		this.updateName(senseprop.getName(),notifyType );
+		this.updateSensorType(SensorType.typeAsEnum(senseprop.getSensorType()), notifyType);
+		this.updateCoolSetPoint(new Temperature(senseprop.getLowSetpoint()), notifyType); 
+		this.updateHeatSetPoint(new Temperature(senseprop.getHighSetpoint()), notifyType);
+		this.updateTemperature(new Temperature(senseprop.getCurrent()), notifyType);
+		this.updateTriggerOutput(senseprop.getStatus() != 0, notifyType);
+	}
+	/** Update values for the sensor.
+	 * @param sensestat  The Sensor Status message object
+	 * @param sense      The exposed omni sensor
+	 * @param isInitial  Is this the initial update for the sensor.
+	 */
+	public void update(AuxSensorStatus sensestat, OmniNotifyListener.NotifyType notifyType) {
+		this.updateCoolSetPoint(new Temperature(sensestat.getCoolSetpoint()), notifyType); 
+		this.updateHeatSetPoint(new Temperature(sensestat.getHeatSetpoint()), notifyType);
+		this.updateTemperature(new Temperature(sensestat.getTemp()), notifyType);
+		this.updateTriggerOutput(sensestat.getStatus() != 0, notifyType);
 	}
 }
 // vim: syntax=java.doxygen ts=4 sw=4 noet
