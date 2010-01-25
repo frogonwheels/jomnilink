@@ -18,11 +18,16 @@
  */
 package com.wheelycreek.jomnilinkII.Parts;
 
+import java.util.Date;
+
+import com.digitaldan.jomnilinkII.MessageTypes.CommandMessage;
+import com.digitaldan.jomnilinkII.MessageTypes.CommandMessage.TimeUnit;
 import com.digitaldan.jomnilinkII.MessageTypes.properties.UnitProperties;
 import com.digitaldan.jomnilinkII.MessageTypes.statuses.UnitStatus;
-import com.wheelycreek.jomnilinkII.OmniPart;
-import com.wheelycreek.jomnilinkII.OmniSystem.OmniArea;
 import com.wheelycreek.jomnilinkII.OmniNotifyListener;
+import com.wheelycreek.jomnilinkII.OmniPart;
+import com.wheelycreek.jomnilinkII.OmniNotifyListener.NotifyType;
+import com.wheelycreek.jomnilinkII.OmniSystem.OmniArea;
 
 /** Represents a 'Unit' in the omni controller.  This includes flags and units from external (eg UPB) devices.
  * @author michaelg
@@ -30,7 +35,7 @@ import com.wheelycreek.jomnilinkII.OmniNotifyListener;
 public class OmniUnit extends OmniPart {
 	/** Types of Unit changes.
 	 */
-	enum ChangeType { Status, State, Time, UnitType};
+	public enum ChangeType { UnitType, RawState, Status, Scene};
 
 	/** Type of Omni units.
 	*/
@@ -78,67 +83,174 @@ public class OmniUnit extends OmniPart {
 			}		
 		}
 	};
+	
+	public enum  UnitVariant { Unit, Device, Room, Output, Flag};
 
 	
 	/** Message sent when OmniZone changes.
 	 */
 	public class UnitChangeMessage extends OmniNotifyListener.ChangeMessage {
-		public ChangeType change_type;
+		public UnitVariant variantType;
+		public ChangeType changeType;
 
-		public UnitChangeMessage(OmniArea area, int number, OmniNotifyListener.NotifyType notifyType,
+		public UnitChangeMessage(OmniArea area, UnitVariant unitvar, int number, OmniNotifyListener.NotifyType notifyType,
 				ChangeType changeType) {
 			super(area, number, notifyType);
-			change_type = changeType;
+			this.changeType = changeType;
+			this.variantType = unitvar;
 		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			return String.format(
+				"UnitChangeMessage [area=%s, variant=%s, number=%s, notifyType=%s, change_type=%s]",
+				area, variantType, number, notifyType, changeType);
+		}
+		
 	}
+	/** The derived unit class variant.
+	  */
+	protected UnitVariant unit_variant;
+	/** The derived unit class variant.
+	  */
+	protected UnitType unit_type;
+	/** There's an operation pending. 
+	 *  Causes events to fire when changes come back from omni..
+	 */
+	protected boolean op_pending;
+	/** Raw value of 'status' from controller.
+	 */
+	protected int raw_status;
+	/** Time remaining in seconds from when command was received.
+	 */
+	protected int time_remain_sec;
+	protected java.util.Date when_set;
+	private boolean switched_on = false;
+	protected int value = 0;
+	
+
 	/** Construct an OmniUnit representation for a particular u nit.
 	 * @param number
 	 */
 	public OmniUnit(int number) {
 		super(number, OmniArea.Unit);
+		op_pending = false;
+		unit_variant = UnitVariant.Unit;
+	}
+	/** Construct an OmniUnit representation for a particular u nit.
+	 * @param number
+	 */
+	public OmniUnit(UnitVariant unitvariant, int number) {
+		super(number, OmniArea.Unit);
+		this.op_pending = false;
+		this.unit_variant = unitvariant;
 	}
 	
 	protected OmniNotifyListener.ChangeMessage createChangeMessage( ChangeType changetype, OmniNotifyListener.NotifyType notifyType) {
-		return new UnitChangeMessage(area, number, notifyType, changetype);
+		return new UnitChangeMessage(area, unit_variant, number, notifyType, changetype);
 	}
-	/**
-	 * @return the state
+	/** The raw Status of the unit.
+	 * @return the status
 	 */
-	public int getState() {
-		return state;
+	public int getRawStatus() {
+		return raw_status;
 	}
 
-	/**
+	/** set the state of unit.
 	 * @param state the state to set
+	 * The current condition of the unit depends on the type of the unit.
+For X-10 units, the possible conditions are:
+         0                 Last commanded off
+         1                 Last commanded on
+         17-25             Last commanded dim 1-9, respectively
+         33-41             Last commanded brighten 1-9, respectively
+         100-200           Last commanded level 0%-100%, respectively
+For Lightolier Compose PLC units:
+         0                 Off
+         1                 On
+         2-13              Scene A-L, respectively
+         17-25             Last commanded dim 1-9, respectively
+         33-41             Last commanded brighten 1-9, respectively
+For Advanced Lighting Control (ALC) relay modules:
+         0                 Off
+         1                 On
+For Advanced Lighting Control (ALC) dimmer modules:
+         0               Off
+         1               On
+         100-200         Level 0%-100%, respectively
+For Universal Powerline Bus (UPB) units:
+         0               Off
+         1               On
+         100-200         Level 0%-100%, respectively
+For voltage outputs:
+         0               Off
+         1               On
+For flags:
+         0               Off
+         Non-zero        On
+For counters:
+         0-255           Counter value
+
 	 */
-	public void setState(int state) {
-		updateState(state, OmniNotifyListener.NotifyType.ChangeRequest);
+	public void setStatus(int state) {
+		updateStatus(state, 0, OmniNotifyListener.NotifyType.ChangeRequest);
 	}
-	public void updateState(int state, OmniNotifyListener.NotifyType notifyType) {
-		if (state != this.state) {
-			this.state = state;
-			notify(createChangeMessage(ChangeType.State, notifyType));
+	/** Set the state/time remaining for the unit.
+	 */
+	public void setStatus(int state, int timeRemain) {
+		updateStatus(state, timeRemain, OmniNotifyListener.NotifyType.ChangeRequest);
+	}
+	
+	protected boolean forceChange( int timeSec, NotifyType notifyType, boolean pendFlag) {
+		return ( (pendFlag && notifyType != NotifyType.ChangeRequest)
+				|| timeSec != 0
+				|| this.time_remain_sec != 0 );
+	}
+	/** Update the state (and time remaining) for the unit.
+	 * @param state    The value of the unit.
+	 * @param timeRemain  The time it is set for
+	 * @param notifyType The type of notification (initial/update/ChangeRequest)
+	 */
+	public void updateStatus(int status,int timeRemain, OmniNotifyListener.NotifyType notifyType) {
+		if (status != this.raw_status || forceChange(timeRemain,notifyType, op_pending)) {
+			this.raw_status = status;
+			op_pending = (notifyType == NotifyType.ChangeRequest);
+			rawStatusChanged(timeRemain, notifyType);
 		}
 	}
 
-	/**
-	 * @return the time_sec
+	/** Notify the listeners and the derived units something has changed.
+	 * @param notifyType  The type of notification
+	 */
+	protected void rawStatusChanged(int timeRemain, OmniNotifyListener.NotifyType notifyType) {
+		if (timeRemain != this.time_remain_sec) {
+			// just in case it wasn't set by the override
+			this.time_remain_sec = timeRemain;
+			if (timeRemain == 0)
+				this.when_set = null;
+			else
+				this.when_set = new Date();
+		}
+		notify(createChangeMessage(ChangeType.RawState, notifyType));
+	}
+
+	/** The number of seconds the item was set for.  
 	 */
 	public int getTimeSec() {
-		return time_sec;
+		return time_remain_sec;
 	}
-
-	/**
-	 * @param timeSec the time_sec to set
+	/** The calculated number of seconds remaining.
 	 */
-	public void setTimeSec(int timeSec) {
-		updateTimeSec(timeSec, OmniNotifyListener.NotifyType.ChangeRequest);
-	}
-	public void updateTimeSec(int timeSec, OmniNotifyListener.NotifyType notifyType) {
-		if (time_sec != timeSec) {
-			time_sec = timeSec;
-			notify(createChangeMessage(ChangeType.Time, notifyType));
+	public int getTimeSecRemain() {
+		int result = time_remain_sec;
+		if (when_set != null && result > 0){
+			result -= (int)((when_set.getTime() - new Date().getTime()) /1000);
+			if (result < 0) result = 0;
 		}
+		return result;
 	}
 
 	/**
@@ -160,9 +272,6 @@ public class OmniUnit extends OmniPart {
 			notify(createChangeMessage(ChangeType.UnitType, notifyType));
 		}
 	}
-	private int state;
-	private int time_sec;
-	private UnitType unit_type;
 
 	/** Update the unit from the unit Properties.
 	 * @param props   The unit properties object
@@ -182,6 +291,35 @@ public class OmniUnit extends OmniPart {
 	 */
 	public void update(UnitStatus status,OmniNotifyListener.NotifyType notifyType) {
 		this.updateStatus(status.getStatus(), status.getTime(), notifyType);
+	}
+	public void sendSetLevel(int levelPerc, int timeSec) {
+		if (levelPerc < 0) levelPerc = 0;
+		else if (levelPerc > 100) levelPerc = 100;
+		notifyCmd(  CommandMessage.unitLevelCmd(number, levelPerc, TimeUnit.Seconds, timeSec));
+	}
+	/** Update a value
+	 * @param newValue
+	 * @param timeSec
+	 * @param notifyType
+	 */
+	protected void updateValue(int newValue, int timeSec, NotifyType notifyType) {
+		if (  newValue != value ||  forceChange(timeSec, notifyType, op_pending)) {
+	
+			this.value = newValue;
+			this.switched_on = newValue!=0;
+			this.time_remain_sec = timeSec;
+			this.when_set = new Date();
+			notify(createChangeMessage(ChangeType.Status, notifyType));
+		}
+	}
+	protected void updateSwitchedOn(boolean b, int timeSec, NotifyType notifyType) {
+		if (b != this.switched_on ||  forceChange(timeSec, notifyType, op_pending)) {
+			this.switched_on = b;
+			this.value = b?((unit_variant == UnitVariant.Device)?100:255):0;
+			this.time_remain_sec = timeSec;
+			this.when_set = new Date();
+			notify(createChangeMessage(ChangeType.Status, notifyType));
+		}		
 	}
 
 }
