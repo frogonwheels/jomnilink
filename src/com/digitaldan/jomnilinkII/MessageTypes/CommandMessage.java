@@ -190,7 +190,7 @@ Command            Parameter 1      Parameter 2           Description
      32+s              101-199          1-n               unit P2 brighten s steps (s=1-9) for P1-100 minutes
      32+s              201-218          1-n               unit P2 brighten s steps (s=1-9) for P1-200 hours
      */
-	public static CommandMessage  unitLevelStepCmd( int unitNo, boolean brighten, int steps,  TimeUnit unit, int timeVal ) {
+	public static CommandMessage  unitUPBLevelStepCmd( int unitNo, boolean brighten, int steps,  TimeUnit unit, int timeVal ) {
 		if (steps < 1 || steps > 9) throw new IllegalArgumentException("Unit steps must be 1-9");
 		return new CommandMessage((brighten?CMD_UNIT_UPB_BRIGHTEN_STEP_BASE:CMD_UNIT_UPB_DIM_STEP_BASE)+steps, 
 				timeAsParam(unit, timeVal), unitNo );
