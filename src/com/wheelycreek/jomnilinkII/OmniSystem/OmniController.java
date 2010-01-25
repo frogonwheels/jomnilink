@@ -31,6 +31,9 @@ import com.digitaldan.jomnilinkII.NotificationListener;
 import com.digitaldan.jomnilinkII.OmniInvalidResponseException;
 import com.digitaldan.jomnilinkII.OmniNotConnectedException;
 import com.digitaldan.jomnilinkII.OmniUnknownMessageTypeException;
+import com.digitaldan.jomnilinkII.MessageTypes.CommandMessage;
+import com.digitaldan.jomnilinkII.MessageTypes.NameData;
+import com.digitaldan.jomnilinkII.MessageTypes.ObjectProperties;
 import com.digitaldan.jomnilinkII.MessageTypes.ObjectStatus;
 import com.digitaldan.jomnilinkII.MessageTypes.OtherEventNotifications;
 import com.digitaldan.jomnilinkII.MessageTypes.events.OtherEvent;
@@ -776,17 +779,37 @@ public class OmniController implements OmniNotifyListener {
 		}
 	}
 	
+	protected void sendAction( ActionRequest msg ) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
+		omni.controllerCommand(msg.getCommand());
+	}
+	
+	/** Respond to a change type request from an OmniPart
+	 * @param msg  Message from omni-part with notifyType==ChangeRequest
+	 */
 	protected void objectChangeRequest(ChangeMessage msg) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
 		if (msg instanceof NameChangeMessage ) {
+			// Special type; name change applies to all areas.
 			omni.sendName(msg.area.get_objtype_msg(), msg.number, ((NameChangeMessage) msg).name);
+		} else if (msg instanceof ActionRequest) {
+			sendAction((ActionRequest)msg);
 		} else { 
 			switch (msg.area) {
 			case Button: {
-				//OmniButton.ButtonPressMessage bpm = (OmniButton.ButtonPressMessage)msg;
-				// TODO: Create a CommandMessage to send a mcro button press.
+				// Create a CommandMessage to send a macro button press.
+				sendAction(new ActionRequest(msg.area, msg.number, CommandMessage.macroButtonCmd(msg.number)));
 			} break;	
 			case Unit: {
-				//OmniUnit.UnitChangeMessage ucm = (OmniUnit.UnitChangeMessage)msg;
+				OmniUnit.UnitChangeMessage ucm = (OmniUnit.UnitChangeMessage)msg;
+				switch (ucm.changeType) {
+				case RawState:
+					OmniUnit unit = units.get(ucm.number);
+					if (unit != null) { // which it should never be.
+						switch ( unit.getUnitType()) {
+						case Flag:
+							sendAction( new ActionRequest(msg.area, msg.number, CommandMessage.unitSetCounterCmd(unit.number, unit.getRawStatus())));
+						}
+					}
+				}
 				// TODO: Change the value of a unit. (optionally for a specified time)
 			} break;
 			case Sensor:{

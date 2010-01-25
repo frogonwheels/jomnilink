@@ -21,7 +21,8 @@ package com.wheelycreek.jomnilinkII;
 
 import java.util.Vector;
 
-import com.wheelycreek.jomnilinkII.OmniNotifyListener;
+import com.digitaldan.jomnilinkII.MessageTypes.CommandMessage;
+import com.wheelycreek.jomnilinkII.OmniNotifyListener.ActionRequest;
 import com.wheelycreek.jomnilinkII.OmniSystem.OmniArea;
 
 
@@ -52,6 +53,7 @@ public class OmniPart {
 		}
 		
 	}
+	
 	/** Construct with an element number and area.
 	 * Identifies an omni component.
 	 */
@@ -128,6 +130,10 @@ public class OmniPart {
 	public String getName() {
 		return part_name;
 	}
-
+	
+	protected void notifyCmd( CommandMessage cmd ) {
+		ActionRequest rqst = new ActionRequest(area, number, cmd);
+		notify(rqst);
+	}
 }
 // vim: syntax=java.doxygen ts=4 sw=4 noet

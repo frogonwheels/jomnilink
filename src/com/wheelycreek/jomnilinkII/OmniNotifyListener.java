@@ -18,6 +18,7 @@
  */
 package com.wheelycreek.jomnilinkII;
 
+import com.digitaldan.jomnilinkII.MessageTypes.CommandMessage;
 import com.wheelycreek.jomnilinkII.OmniSystem.OmniArea;
 
 /** Notification for the OmniController children to say they have changed
@@ -62,6 +63,36 @@ public interface OmniNotifyListener {
 					number, notifyType);
 		}
 	}
+	
+	
+	/** Request for an action.
+	 * This will 
+	 * @author michaelg
+	 *
+	 */
+	public class ActionRequest extends ChangeMessage {
+		
+		private final CommandMessage command;
+		private int retries;
+		
+		public ActionRequest(OmniArea area, int number, CommandMessage cmd ) {
+			super(area, number, NotifyType.ChangeRequest);
+			this.command = cmd;
+		}
+		
+		public CommandMessage getCommand() {
+			return command;
+		}
+		public int getRetries() {
+			return retries;
+		}
+		public int retry() {
+			return ++retries;
+		}
+		
+	}
+	
+	
 	public void objectChangedNotification(ChangeMessage msg);
 }
 // vim: syntax=java.doxygen ts=4 sw=4 noet
