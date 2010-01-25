@@ -72,9 +72,14 @@ import com.wheelycreek.jomnilinkII.Parts.OmniZone;
  */
 public class OmniController implements OmniNotifyListener {
 	public static void main(String[] args) {
+		OmniController c = new OmniController();
+		c.setDebugChan(dcSensors | dcZones /*dcMessage*/ |dcChildMessage, true);
+		runMain(args, c, true);
+	}
+	public static void runMain(String[] args, OmniController c, boolean keepKey) {
 		
 		if(args.length != 3){
-			System.out.println("Usage:com.wheelycreek.jomnilinkII.OmiController host port encKey");
+			System.out.println("Usage: "+c.getClass().getCanonicalName()+"  host port encKey");
 			System.exit(-1);
 		}
 		String host  = args[0];
@@ -82,8 +87,7 @@ public class OmniController implements OmniNotifyListener {
 		String key = args[2];
 		
 		try {
-			OmniController c = new OmniController(host,port,key);
-			c.setDebugChan(dcSensors | dcZones /*dcMessage*/ |dcChildMessage, true);
+			c.connectTo(host, port, key, keepKey);
 			c.reloadProperties();
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
@@ -128,7 +132,9 @@ public class OmniController implements OmniNotifyListener {
 		if (((channels & dcConnection) == dcConnection) && (omni != null))
 			omni.debug = newVal;
 	}
-
+	/** Connection to the host.
+	 */
+	protected Connection omni;
 	/** The specified omni host.
 	 */
 	private String omni_host;
@@ -177,26 +183,23 @@ public class OmniController implements OmniNotifyListener {
 		buttons = new TreeMap<Integer, OmniButton>();
 	}
 	
-	/** Constrcut an omni controller.
-	  * @param host The name of the host
-	  * @param port The port to connect to.
-	  * @param key  The security key to use.
+	/** Construct an omni controller.
+	 * @see connectTo  to create the connection.
 	  */
-	public OmniController(String host, int port, String key) throws UnknownHostException, IOException, Exception {
+	public OmniController() {
 		constructArrays();
-		createConnection(host, port, key);
-		this.omni_host = host;
-		this.omni_port = 0;
-		this.omni_key = "";
 	}
-	/** Constrcut an omni controller.
-	  * @param host The name of the host
-	  * @param port The port to connect to.
-	  * @param key  The security key to use.
-	  * @param keepkey True to keep the key for reconnects.
-	  */
-	public OmniController(String host, int port, String key, boolean keepKey) throws UnknownHostException, IOException, Exception {
-		constructArrays();
+	
+	/** Connect to a controller.
+	 * @param host The name of the host
+	 * @param port The name of the host
+	 * @param key  The secret key to use
+	 * @param keepKey True to keep the key for reconnect.
+	 * @throws Exception 
+	 * @throws IOException 
+	 * @throws UnknownHostException 
+	 */
+	public void connectTo(String host, int port, String key, boolean keepKey) throws UnknownHostException, IOException, Exception {
 		createConnection(host, port, key);
 		this.omni_host = host;
 		if (keepKey) {
@@ -207,12 +210,33 @@ public class OmniController implements OmniNotifyListener {
 			this.omni_key = "";
 		}
 	}
+	/** Override-able Method called when omni is successfully connected.  
+	 * @param reconnect Called with true if this is a 'reconnect' scenario.
+	 */
+	protected void connected( boolean reconnect ) {
+		try {
+			if (reconnect)
+				reloadStatus();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (OmniNotConnectedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (OmniInvalidResponseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (OmniUnknownMessageTypeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	
-	protected Connection omni;
 	
 	/** Create a connection to an omni.
 	  */
 	protected void createConnection(String host, int port, String key) throws UnknownHostException, IOException, Exception{
+		boolean reconnect=(omni != null);
 		omni = new Connection(host, port, key);
 		omni.debug = getDebugChan(dcConnection);
 		omni.addNotificationListener(new NotificationListener(){
@@ -222,13 +246,8 @@ public class OmniController implements OmniNotifyListener {
 			public void otherEventNotification(OtherEventNotifications o) {	otherEventNotify(o);}
 		});
 		omni.enableNotifications();
-		// Reset Information so that it is read again.
-		sys_info = null;
-		sys_status = null;
-		sys_troubles = null;
-		sys_formats = null;
-		sys_features = null;
-		zones_ready = null;
+		
+		connected(reconnect);
 	}
 	/** Reconnect to the omni if allowed.
 	  */
@@ -279,6 +298,11 @@ public class OmniController implements OmniNotifyListener {
 	public void reloadStatus() throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
 		updateZones();
 		updateSensors();
+		updateUnits();
+		updateOutputs();
+		updateDevices();
+		updateRooms();
+		updateFlags();
 	}
 	
 	/** Receive status notifications from the communications layer.
@@ -363,6 +387,22 @@ public class OmniController implements OmniNotifyListener {
 	protected void otherEventNotify(OtherEventNotifications o) {
 		for(int k=0;k<o.Count();k++){
 			otherEventReceive(o.getNotification(k));
+		}
+	}
+	/** Get an omni part given area and number.
+	 * 
+	 * @param area
+	 * @return
+	 * @throws Exception 
+	 * @throws OmniNotConnectedException 
+	 */
+	public OmniPart getPart(OmniArea area, int objNumber) throws OmniNotConnectedException, Exception {
+		switch (area) {
+		case Zone: return getZone(objNumber);
+		case Unit: return getUnit(objNumber);
+		case Sensor: return getSensor(objNumber);
+		case Button: return getButton(objNumber);
+		default: return null;
 		}
 	}
 	
@@ -770,14 +810,8 @@ public class OmniController implements OmniNotifyListener {
 	public String getName(OmniArea area, int index) throws OmniNotConnectedException, Exception {
 		if (index < 0)
 			return null;
-		OmniPart part = null;
-		switch (area) {
-		case Zone:     part = zones.get(index); break;
-		case Button:   part = buttons.get(index); break;
-		case Sensor:   part = sensors.get(index); break;
-		case Unit: 
-			part = getUnit(index); break;
-		}
+		OmniPart part = getPart(area, index);
+		
 		if (part != null)
 			return part.getName();
 		
