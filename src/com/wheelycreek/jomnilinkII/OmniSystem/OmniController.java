@@ -46,9 +46,11 @@ import com.digitaldan.jomnilinkII.MessageTypes.events.OtherEvent;
 import com.digitaldan.jomnilinkII.MessageTypes.events.UserMacroButtonEvent;
 import com.digitaldan.jomnilinkII.MessageTypes.properties.AuxSensorProperties;
 import com.digitaldan.jomnilinkII.MessageTypes.properties.ButtonProperties;
+import com.digitaldan.jomnilinkII.MessageTypes.properties.MessageProperties;
 import com.digitaldan.jomnilinkII.MessageTypes.properties.UnitProperties;
 import com.digitaldan.jomnilinkII.MessageTypes.properties.ZoneProperties;
 import com.digitaldan.jomnilinkII.MessageTypes.statuses.AuxSensorStatus;
+import com.digitaldan.jomnilinkII.MessageTypes.statuses.MessageStatus;
 import com.digitaldan.jomnilinkII.MessageTypes.statuses.Status;
 import com.digitaldan.jomnilinkII.MessageTypes.statuses.UnitStatus;
 import com.digitaldan.jomnilinkII.MessageTypes.statuses.ZoneStatus;
@@ -57,10 +59,11 @@ import com.wheelycreek.jomnilinkII.OmniPart;
 import com.wheelycreek.jomnilinkII.OmniPart.NameChangeMessage;
 import com.wheelycreek.jomnilinkII.Parts.OmniButton;
 import com.wheelycreek.jomnilinkII.Parts.OmniDevice;
+import com.wheelycreek.jomnilinkII.Parts.OmniFlag;
+import com.wheelycreek.jomnilinkII.Parts.OmniMessage;
 import com.wheelycreek.jomnilinkII.Parts.OmniOutput;
 import com.wheelycreek.jomnilinkII.Parts.OmniRoom;
 import com.wheelycreek.jomnilinkII.Parts.OmniSensor;
-import com.wheelycreek.jomnilinkII.Parts.OmniFlag;
 import com.wheelycreek.jomnilinkII.Parts.OmniUnit;
 import com.wheelycreek.jomnilinkII.Parts.OmniZone;
 
@@ -115,6 +118,8 @@ public class OmniController implements OmniNotifyListener {
 	static final int dcSensors = 0x10;
 	/** Debug channel for units*/
 	static final int dcUnits = 0x20;
+	/** Debug channel for messages*/
+	static final int dcMsgs = 0x40;
 	private int debug_channels;
 
 	/** Check all the specified debug channels are set.
@@ -157,6 +162,7 @@ public class OmniController implements OmniNotifyListener {
 	private SortedMap<Integer, OmniRoom> rooms;
 	private SortedMap<Integer, OmniFlag> flags;
 	private SortedMap<Integer, OmniButton> buttons;
+	private SortedMap<Integer, OmniMessage> messages;
 	
 	// Various one-off bits of system information.
 	private SystemFeatures    sys_features;
@@ -179,6 +185,7 @@ public class OmniController implements OmniNotifyListener {
 		rooms   = new TreeMap<Integer, OmniRoom>();
 		flags   = new TreeMap<Integer, OmniFlag>();
 		buttons = new TreeMap<Integer, OmniButton>();
+		messages = new TreeMap<Integer, OmniMessage>();
 	}
 	
 	/** Construct an omni controller.
@@ -286,6 +293,7 @@ public class OmniController implements OmniNotifyListener {
 		loadSensors();
 		loadUnits();
 		loadButtons();
+		loadMessages();
 	}
 	/** Reload the status for the parts.
 	 * @throws OmniUnknownMessageTypeException 
@@ -301,6 +309,7 @@ public class OmniController implements OmniNotifyListener {
 		updateDevices();
 		updateRooms();
 		updateFlags();
+		updateMessages(null);
 	}
 	
 	/** Receive status notifications from the communications layer.
@@ -327,8 +336,14 @@ public class OmniController implements OmniNotifyListener {
 		} break;
 		case ExpEnclosure:
 			break;
-		case Msg:
-			break;
+		case Msg: {
+			Status status[] = s.getStatuses();
+			for (int i=0; i < status.length; ++i) {
+				MessageStatus ms = (MessageStatus)status[i];
+				messageStatusReceive(ms);
+			}
+			
+		} break;
 		case Thermo:
 			break;
 		case Unit: {
@@ -379,6 +394,19 @@ public class OmniController implements OmniNotifyListener {
 			sensor.update(status, NotifyType.Notify);
 		
 	}
+	/** Receive a message status change.
+	 */
+	private void messageStatusReceive(MessageStatus status) {
+		
+		if (getDebugChan(dcMsgs))
+			System.out.println("message Changed: "+status.toString());
+
+		OmniMessage message = messages.get(status.getNumber());
+		if (message != null)
+			message.update(status, NotifyType.Notify);
+		
+	}	
+	
 	/** Receive a list 'other event' notification.
 	  * calls otherEventReceive for each one.
 	  */
@@ -884,9 +912,91 @@ public class OmniController implements OmniNotifyListener {
 	 * @throws Exception 
 	 * @throws OmniNotConnectedException 
 	 */
-	public static OmniNotifyListener.NotifyType msgType(boolean isInitial) {
-		return isInitial?OmniNotifyListener.NotifyType.Initial:OmniNotifyListener.NotifyType.Notify;
+	public OmniZone getMessage(int messageNo) throws OmniNotConnectedException, Exception {
+		OmniZone result = zones.get(messageNo);
+		if (result == null) {
+			// Build a new 
+			loadMessages(messageNo, messageNo);
+			result = zones.get(messageNo);
+		}
+		return result;
 	}
+	/** Get a Message by name.
+	 * @param name Name of message to get.
+	 * @throws Exception 
+	 * @throws OmniNotConnectedException 
+	 */
+	public OmniMessage getMessage(String name) throws OmniNotConnectedException, Exception {
+		return getByName(name, OmniArea.Msg, messages);
+	}
+	/** Load messages.
+	  */
+	protected void loadMessages() throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
+	    loadMessages(1,-1);
+	}
+	
+
+	/** Load a range of messages.
+	  */
+	protected void loadMessages(int objFrom, int objTo) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
+		int objnum = objFrom-1;
+		Message m;
+		// Get initial message properties
+		while((m = omni.reqObjectProperties(OmniArea.Msg.get_objtype_msg(), objnum, 1, 
+				ObjectProperties.FILTER_1_NAMED, ObjectProperties.FILTER_2_AREA_ALL, ObjectProperties.FILTER_3_NONE)).getMessageType() 
+				== Message.MESG_TYPE_OBJ_PROP){
+			MessageProperties mprop = (MessageProperties)m;
+			objnum = mprop.getNumber();
+			OmniMessage message = messages.get(objnum);
+			if (message == null) {
+				message = new OmniMessage(objnum);
+				messages.put(objnum, message);
+				message.addNotificationListener(this);
+			}
+			message.update(mprop, NotifyType.Initial);
+			// for some reason message properties don't contain their current state. 
+			updateMessage(message, NotifyType.Initial);
+			if (objTo > 0 && objnum >= objTo )
+				break;
+		}
+		
+	}
+	
+	/** Update the status of all loaded sensors.
+	 */
+	protected void updateMessages() throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
+		updateMessages(NotifyType.Notify);	
+		
+	}
+	/** Update the status of all loaded sensors.
+	 * @param notifyType The notification type.
+	 */
+	protected void updateMessages(NotifyType notifyType) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
+		// Update all sensor values.
+		Iterator<OmniMessage> iter = messages.values().iterator();
+		while (iter.hasNext()) {
+			OmniMessage msgObj = iter.next();
+			if (msgObj != null) 
+				updateMessage(msgObj, notifyType );
+		}
+	}
+	/**  Update the status a single message object.
+	 * @param notifyType
+	 * @param msgObj
+	 * @throws IOException
+	 * @throws OmniNotConnectedException
+	 * @throws OmniInvalidResponseException
+	 * @throws OmniUnknownMessageTypeException
+	 */
+	private void updateMessage( OmniMessage msgObj, NotifyType notifyType)
+			throws IOException, OmniNotConnectedException,
+			OmniInvalidResponseException, OmniUnknownMessageTypeException {
+		ObjectStatus status = omni.reqObjectStatus(OmniArea.Msg.get_objtype_msg(), msgObj.number,msgObj.number);
+		MessageStatus [] sensorstats = (MessageStatus[])status.getStatuses();
+		if (msgObj.number == sensorstats[0].getNumber())
+			msgObj.update(sensorstats[0], notifyType);
+	}
+
 	/** Receive a single 'OtherEvent' type message.
 	  */
 	protected void otherEventReceive( OtherEvent event) {
