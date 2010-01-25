@@ -50,13 +50,15 @@ zone is not ready.
 		return zones;
 	}
 	public boolean getZoneReady( int zone ) {
-		if (zone < 0) return false;
+		if (zone < 1) return false;
+		--zone; // 1->0 based.
 		int byteNo = zone / 8;
 		
 		if (byteNo >= zones.length) return true; 
 		return (zones[byteNo] >> (zone % 8) & 0x1) == 0x1;
 	}
 	public void setZoneReady( int zone, boolean ready ) {
+		--zone; // 1->0 based
 		if (zone >= 0) {
 			int byteNo = zone / 8;
 			if (byteNo < zones.length) {
