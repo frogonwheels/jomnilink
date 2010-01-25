@@ -101,19 +101,19 @@ public class OmniController implements OmniNotifyListener {
 		}
 	}
 
-	/// Debug channels (all)
+	/** Debug channels (all) */
 	static final int dcAll = 0x3f;
-	/// Debug channel for connections
+	/** Debug channel for connections */
 	static final int dcConnection = 0x1;
-	/// Debug channel for messsages
+	/** Debug channel for messages */
 	static final int dcMessage = 0x2;
-	/// Debug channel for zones
+	/** Debug channel for zones*/
 	static final int dcZones = 0x4;
-	/// Debug channel for child messages
+	/** Debug channel for child messages */
 	static final int dcChildMessage = 0x8;
-	/// Debug channel for sensors
+	/** Debug channel for sensors */
 	static final int dcSensors = 0x10;
-	/// Debug channel for units
+	/** Debug channel for units*/
 	static final int dcUnits = 0x20;
 	private int debug_channels;
 
@@ -145,10 +145,8 @@ public class OmniController implements OmniNotifyListener {
 	 */
 	private String omni_key;
 
-	// Collections of names.
-	private	Vector<String> zone_names;
-	private Vector<String> unit_names;
-	private Vector<String> area_names;
+	// Collections of names. Used for doing lookups.
+	private SortedMap<OmniArea, Vector<String> > names;
 
 	// Collections of Omni parts.
 	private SortedMap<Integer, OmniZone> zones;
@@ -422,6 +420,55 @@ public class OmniController implements OmniNotifyListener {
 		}
 		return result;
 	}
+	/** Get a Zone by name.
+	 * @throws Exception 
+	 * @throws OmniNotConnectedException 
+	 */
+	public OmniZone getZone( String name) throws OmniNotConnectedException, Exception {
+		return getByName(name, OmniArea.Zone, zones);
+	}
+	
+	
+	@SuppressWarnings("unchecked")
+	protected < T extends OmniPart > T getByName( String name, OmniArea area, SortedMap<Integer, T> partmap) throws OmniNotConnectedException, Exception {
+		T part = findNameInMap(name, partmap);
+		if (part != null)
+			return part;
+		return (T)findInPartNames(name, area);
+	}
+	/** 
+	 * @param name
+	 * @param area
+	 * @return
+	 * @throws OmniNotConnectedException
+	 * @throws Exception
+	 */
+	private OmniPart findInPartNames(String name, OmniArea area)
+			throws OmniNotConnectedException, Exception {
+		Vector<String> namelist = get_vectors(area);
+		for (int idx = 0; idx < namelist.size(); ++idx)
+			if (namelist.get(idx).equalsIgnoreCase(name)) {
+				// Get the part. We can't check if the returned type is a 'T' because of type erasure!
+				return getPart(area, idx);
+			}
+	
+		return null;
+	}
+	/** Find a name in a sorted map
+	 * @param name    String to search
+	 * @param partmap  SortedMap of OmniPart to search in.
+	 * @return The found part or null.
+	 */
+	protected <T extends OmniPart> T findNameInMap(String name, SortedMap<Integer, T> partmap) {
+		Iterator<T> iter = partmap.values().iterator();
+		while (iter.hasNext()) {
+			T part = iter.next();
+			if (part != null && part.getName().equalsIgnoreCase(name) ) {
+				return part;
+			}
+		}
+		return null;
+	}
 
 	/** Load all available zones as objects.
 	  */
@@ -488,7 +535,14 @@ public class OmniController implements OmniNotifyListener {
 		}
 		return ret;
 	}
-
+	
+	/** Get a Sensor by name.
+	 * @throws Exception 
+	 * @throws OmniNotConnectedException 
+	 */
+	public OmniSensor  getSensor( String name) throws OmniNotConnectedException, Exception {
+		return getByName(name, OmniArea.Sensor, sensors);
+	}
 	/** Load all available (named) sensors.
 	 */
 	protected void loadSensors() throws Exception, IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
@@ -551,6 +605,20 @@ public class OmniController implements OmniNotifyListener {
 		}
 		return ret;
 	}
+	/** Get a unit by  name.
+	 * @param name  Name of the unit.
+	 * @return
+	 * @throws OmniNotConnectedException
+	 * @throws Exception
+	 */
+	public OmniUnit getUnit( String name) throws OmniNotConnectedException, Exception {
+		OmniPart unit;
+		unit = findInPartNames(name, OmniArea.Unit);
+		if (unit instanceof OmniUnit)
+			return (OmniUnit)unit;
+		return null;
+	}
+	
 	/** Get an Output object by number.
 	  */
 	public OmniOutput getOutput(int outputNo) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
@@ -561,6 +629,7 @@ public class OmniController implements OmniNotifyListener {
 		}
 		return ret;
 	}
+
 	/** Get a Room object by number.
 	 * @throws OmniUnknownMessageTypeException 
 	 * @throws OmniInvalidResponseException 
@@ -575,6 +644,17 @@ public class OmniController implements OmniNotifyListener {
 		}
 		return ret;
 	}
+	public OmniRoom getRoom(String name) throws OmniNotConnectedException, Exception {
+		OmniRoom room = findNameInMap(name, rooms);
+		if (room != null)
+			return room;
+		OmniPart part = findInPartNames(name, OmniArea.Unit);
+		if (part instanceof OmniRoom)
+			return (OmniRoom)part;
+		else
+			return null;
+	}
+	
 	/** Get a Device object by number.
 	 * @throws OmniUnknownMessageTypeException 
 	 * @throws OmniInvalidResponseException 
@@ -589,6 +669,22 @@ public class OmniController implements OmniNotifyListener {
 		}
 		return ret;
 	}
+	/** Get a device by name.
+	 * @param name  Name to find
+	 * @return  Device object of that name.
+	 * @throws OmniNotConnectedException
+	 * @throws Exception
+	 */
+	public OmniDevice getDevice(String name) throws OmniNotConnectedException, Exception {
+		OmniDevice device = findNameInMap(name, devices);
+		if (device != null)
+			return device;
+		OmniPart part = findInPartNames(name, OmniArea.Unit);
+		if (part instanceof OmniDevice)
+			return (OmniDevice)part;
+		else
+			return null;
+	}
 	/** Get a flag object by number.
 	 * @throws OmniUnknownMessageTypeException 
 	 * @throws OmniInvalidResponseException 
@@ -602,6 +698,16 @@ public class OmniController implements OmniNotifyListener {
 			ret = flags.get(flagNo);
 		}
 		return ret;
+	}
+	public OmniFlag getFlag(String name) throws OmniNotConnectedException, Exception {
+		OmniFlag flag = findNameInMap(name, flags);
+		if (flag != null)
+			return flag;
+		OmniPart part = findInPartNames(name, OmniArea.Unit);
+		if (part instanceof OmniFlag)
+			return (OmniFlag)part;
+		else
+			return null;
 	}
 	
 	/** Load all units.
@@ -683,12 +789,72 @@ public class OmniController implements OmniNotifyListener {
 				break;
 		}
 	}
+	
 
+	/** Update the status of all loaded units.
+	 * @throws OmniUnknownMessageTypeException 
+	 * @throws OmniInvalidResponseException 
+	 * @throws OmniNotConnectedException 
+	 * @throws IOException 
+	 */	
+	private <T extends OmniUnit>  void updateUnitCollection( SortedMap<Integer, T> unitsmap ) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException  {
+		Iterator<T> iter = unitsmap.values().iterator();
+		while (iter.hasNext()) {
+			OmniUnit unit = iter.next();
+			if (unit != null) {
+				ObjectStatus status = omni.reqObjectStatus(OmniArea.Unit.get_objtype_msg(), unit.number, unit.number);
+				UnitStatus [] sensorstats = (UnitStatus[])status.getStatuses();
+				if (unit.number == sensorstats[0].getNumber())
+					unit.update(sensorstats[0], NotifyType.Notify);
+			}
+		}
+	}
+	public void updateUnits() throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
+		updateUnitCollection( units);
+	}
+	public void updateOutputs() throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
+		updateUnitCollection(outputs);
+	}
+	public void updateDevices() throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
+		updateUnitCollection(devices);
+	}
+	public void updateRooms() throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
+		updateUnitCollection(rooms);
+	}
+	public void updateFlags() throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
+		updateUnitCollection(flags);
+	}
+	
+	/** get a macro button object.
+	 * @param buttonNo
+	 * @return a loaded button object.
+	 * @throws Exception 
+	 * @throws OmniNotConnectedException 
+	 */
+	public OmniZone getButton(int buttonNo) throws OmniNotConnectedException, Exception {
+		OmniZone result = zones.get(buttonNo);
+		if (result == null) {
+			// Build a new 
+			loadButtons(buttonNo, buttonNo);
+			result = zones.get(buttonNo);
+		}
+		return result;
+	}
+	/** Get a Button by name.
+	 * @param name Name of button to get.
+	 * @throws Exception 
+	 * @throws OmniNotConnectedException 
+	 */
+	public OmniButton getButton(String name) throws OmniNotConnectedException, Exception {
+		return getByName(name, OmniArea.Button, buttons);
+	}
 	/** Load buttons.
 	  */
 	protected void loadButtons() throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
 	    loadButtons(1,-1);
 	}
+	
+
 	/** Load a range of buttons.
 	  */
 	protected void loadButtons(int objFrom, int objTo) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
@@ -706,11 +872,18 @@ public class OmniController implements OmniNotifyListener {
 				buttons.put(objnum, button);
 				button.addNotificationListener(this);
 			}
+
 			if (objTo > 0 && objnum >= objTo )
 				break;
 		}
 	}
 
+	/** get a macro Message object.
+	 * @param MessageNo
+	 * @return a loaded Message object.
+	 * @throws Exception 
+	 * @throws OmniNotConnectedException 
+	 */
 	public static OmniNotifyListener.NotifyType msgType(boolean isInitial) {
 		return isInitial?OmniNotifyListener.NotifyType.Initial:OmniNotifyListener.NotifyType.Notify;
 	}
@@ -743,8 +916,12 @@ public class OmniController implements OmniNotifyListener {
 				break;
 		}
 	}
-	
-	protected void load_vector(OmniArea area, Vector<String> list, boolean reload) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
+	/** load up a vector with area name data.
+	 * @param area  Area the names are for
+	 * @param list  List to populate 
+	 * @param reload  Force reload of whole lot.
+	 */
+	protected void load_name_vector(OmniArea area, Vector<String> list, boolean reload) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
 		int max_number = getCapacity(area);
 		int first= reload?list.size():0;
 		list.setSize(max_number);
@@ -756,10 +933,10 @@ public class OmniController implements OmniNotifyListener {
 			}
 		}
 	}
-	protected Vector<String> create_loaded_vector(OmniArea area) throws OmniNotConnectedException, Exception {
+	protected Vector<String> create_loaded_name_vector(OmniArea area) throws OmniNotConnectedException, Exception {
 		Vector<String> result = new Vector<String>();
 		try {
-			load_vector(area, result, false);
+			load_name_vector(area, result, false);
 		} catch (OmniNotConnectedException e) {
 			// connect again?
 			if (!reconnect())
@@ -780,33 +957,51 @@ public class OmniController implements OmniNotifyListener {
 	 * @throws Exception
 	 */
 	protected Vector<String> get_vectors(OmniArea area) throws OmniNotConnectedException, Exception {
-		switch (area) {
-		case Zone:
-			if (zone_names == null)
-			  zone_names = create_loaded_vector(area);
-			return zone_names;
-		case Unit:
-			if (unit_names == null)
-			  unit_names = create_loaded_vector(area);
-			return unit_names;
-		case Area:
-			if (area_names == null)
-			  area_names = create_loaded_vector(area);
-			return area_names;
-		default:
-			return null;
+		Vector<String> strings = null; 
+		if (names == null)
+			names = new TreeMap< OmniArea, Vector<String> >();
+		else
+			strings = names.get(area);
+		if (strings == null) {
+			strings = new Vector<String>();
+			names.put(area, strings);
 		}
+		return strings;
 	}
 
-	// 
+	/** Update the name.
+	 *  
+	 * @param area  Which name to update
+	 * @param index Index of item (1 based).
+	 * @param name  New name of item
+	 * @throws OmniNotConnectedException
+	 * @throws Exception
+	 */
 	protected void setName( OmniArea area, int index, String name ) throws OmniNotConnectedException, Exception {
-		Vector<String> vectors = get_vectors(area);
+		boolean force = false;
+
+		// Update the part if possible.
+		OmniPart part = getPart(area, index);
+		if (part == null)
+			force = true;
+		else
+			part.setName(name);
+
+		// Now update the vectors.
+		Vector<String> vectors = null;
+		if (force)
+			vectors = get_vectors(area);
+		else if (names != null)
+			vectors = names.get(area);
+		
 		if (vectors != null) {
 			if (index >= vectors.size())
 				vectors.setSize(index);
 			vectors.set(index-1, name);
 		}
+		
 	}
+	
 	public String getName(OmniArea area, int index) throws OmniNotConnectedException, Exception {
 		if (index < 0)
 			return null;
