@@ -1,6 +1,6 @@
 package com.digitaldan.jomnilinkII.MessageTypes;
 
-/**
+/*
 *  Copyright (C) 2009  Dan Cunningham                                         
 *                                                                             
 * This program is free software; you can redistribute it and/or
@@ -20,11 +20,49 @@ package com.digitaldan.jomnilinkII.MessageTypes;
 
 import com.digitaldan.jomnilinkII.Message;
 
+/** Message to Command the omni to perform various actions.
+ * 
+ */
 public class CommandMessage implements Message {
 
 	private int command;
 	private int parameter1;
 	private int parameter2;
+	
+	public enum TimeUnit { Inf, Seconds, Minutes, Hours};
+	
+	private static int timeAsParam(TimeUnit unit, int timeVal ) throws IllegalArgumentException {
+		
+		if (timeVal== 0) {
+			return 0;
+		}
+		else
+		switch (unit) {
+			case Inf:
+				return 0;
+			case Seconds: {
+				if (timeVal > 99) {
+					timeVal /= 60; // --> Minutes
+				} else {
+					return timeVal;
+				}
+			}
+			case Minutes: {
+				if (timeVal > 99 ) {
+					timeVal /= 60; //--> Hours
+				} else {
+					return 100 +timeVal;
+				}
+			}
+			case Hours: {
+				if (timeVal > 18)
+					throw new IllegalArgumentException("Time exceeds 18 hours");
+				return 200 + timeVal;
+			}
+			default:
+				return 0;
+		}
+	}
 	
 	/*
 	 *COMMAND MESSAGES
@@ -59,17 +97,54 @@ Command             Parameter 1     Parameter 2         Description
      1                  0                1-n            unit P2 on
      1                  1-99             1-n            unit P2 on for P1 seconds
      1                  101-199          1-n            unit P2 on for P1-100 minutes
-     1                  201-218          1-n            unit P2 on for P1-200 hours
-                                         0-n            area P2 all off (0=all areas)
-     2
-     3                                   0-n            area P2 all on (0=all areas)
+     1                  201-218          1-n            unit P2 on for P1-200 hours*/
+	
+	
+	public static CommandMessage unitSwitchCmd( int unitNo, boolean turnOn, TimeUnit unit, int timeVal  ) {
+		return new CommandMessage(turnOn?CMD_UNIT_ON:CMD_UNIT_OFF,timeAsParam(unit, timeVal), unitNo);
+	}
+/*
+    2                                   0-n            area P2 all off (0=all areas) 
+    3                                   0-n            area P2 all on (0=all areas)
+*/
+	public static CommandMessage areaSwitchCmd( int areaNo, boolean turnOn ) {
+		return new CommandMessage(turnOn?CMD_UNIT_AREA_ALL_ON:CMD_UNIT_AREA_ALL_OFF, 0, areaNo );
+	}
+/*   
      9                  0-100            1-n            unit P2 lighting level to P1 percent
      101                2-99             1-n            unit Lo9(P2) level Hi7(P2) for P1 seconds
      101                101-199          1-n            unit Lo9(P2) level Hi7(P2) for P1-100 minutes
      101                201-218          1-n            unit Lo9(P2) level Hi7(P2) for P1-200 hours
+*/
+	public static CommandMessage unitLevelCmd( int unitNo, int levelPerc, TimeUnit unit, int timeVal) {
+		int time = timeAsParam(unit, timeVal);
+		if (levelPerc < 0)        levelPerc = 0;
+		else if (levelPerc > 100) levelPerc = 100;
+		
+		if (time == 0)
+			return new CommandMessage(CMD_UNIT_PERCENT, levelPerc, unitNo);
+		else {
+			if (unitNo > 0x7f)
+				throw new IllegalArgumentException("Unit out of range");
+			return new CommandMessage(CMD_UNIT_LO9_LEVEL_HIGH7, time, levelPerc | (unitNo << 9 ));
+		}
+	}
+/*
      10                                  1-n            decrement counter P2
      11                                  1-n            increment counter P2
+ */
+	public static CommandMessage unitIncrementCounterCmd(int unitNo, boolean increment) {
+		return new CommandMessage(increment?CMD_UNIT_INCREMENT_COUNTER:CMD_UNIT_DECREMENT_COUNTER,0, unitNo);
+	}
+/*
      12                 0-255            1-n            set counter P2 to P1
+  */
+	public static CommandMessage unitSetCounterCmd(int unitNo, int value) {
+		if ( value < 0 || value > 255)
+			throw new IllegalArgumentException("Unit Counter value out of range");
+		return new CommandMessage(CMD_UNIT_SET_COUNTER, value, unitNo);
+	}
+/*
                                      Copyright © 2008 Home Automation, Inc.
                                                All Rights Reserved
                                                      Page 36
@@ -81,10 +156,30 @@ Command            Parameter 1      Parameter 2           Description
      13                2-99             1-n               unit Lo9(P2) ramp to Hi7(P2) at P1 seconds
      13                101-199          1-n               unit Lo9(P2) ramp to Hi7(P2) at P1-100 minutes
      13                201-210          1-n               unit Lo9(P2) ramp to Hi7(P2) at P1-200 hours
+   */
+	public static CommandMessage unitRampLevelAtTimeCmd( int unitNo, int levelPerc, TimeUnit unit, int timeVal ) {
+		int time = timeAsParam(unit, timeVal);
+		if (levelPerc < 0)        levelPerc = 0;
+		else if (levelPerc > 100) levelPerc = 100;
+		if (time < 2)
+			throw new IllegalArgumentException("Time required for command");
+		if (unitNo > 0x7f)
+			throw new IllegalArgumentException("Unit out of range");
+		return new CommandMessage(CMD_UNIT_LO9_RAMP_HIGH7, time, unitNo | (levelPerc << 9));
+	}
+	/*
      14                0                1-n               Lightolier Compose unit P2 off
      14                1                1-n               Lightolier Compose unit P2 on
      14                2-13             1-n               Lightolier Compose unit P2 scene A-L, respectively
+     */
+	
+	/*
      15                                 1-n               send request status message to UPB unit P2
+     */
+	public static CommandMessage unitUPBStatusRequestCmd( int unitNo ) {
+		return new CommandMessage(CMD_UNIT_UPB_REQ_STATUS, 0, unitNo);
+	}
+	/*
      16+s              0                1-n               unit P2 dim s steps (s=1-9)
      16+s              1-99             1-n               unit P2 dim s steps (s=1-9) for P1 seconds
      16+s              101-199          1-n               unit P2 dim s steps (s=1-9) for P1-100 minutes
@@ -94,6 +189,14 @@ Command            Parameter 1      Parameter 2           Description
      32+s              1-99
      32+s              101-199          1-n               unit P2 brighten s steps (s=1-9) for P1-100 minutes
      32+s              201-218          1-n               unit P2 brighten s steps (s=1-9) for P1-200 hours
+     */
+	public static CommandMessage  unitLevelStepCmd( int unitNo, boolean brighten, int steps,  TimeUnit unit, int timeVal ) {
+		if (steps < 1 || steps > 9) throw new IllegalArgumentException("Unit steps must be 1-9");
+		return new CommandMessage((brighten?CMD_UNIT_UPB_BRIGHTEN_STEP_BASE:CMD_UNIT_UPB_DIM_STEP_BASE)+steps, 
+				timeAsParam(unit, timeVal), unitNo );
+	}
+	
+	/*
      26                0                1-n               UPB unit Lo9(P2) blink at Hi7(P2)
      26                2-99             1-n               UPB unit Lo9(P2) blink at Hi7(P2) for P1 seconds
      26                101-199          1-n               UPB unit Lo9(P2) blink at Hi7(P2) for P1-100 minutes
@@ -150,8 +253,13 @@ Command           Parameter 1       Parameter 2          Description
                                                             3 = away mode
                                                             4 = vacation mode
                                                             5 = party mode
-                                                            6 = special mode
-    7                                    1-n             execute macro button P2
+                                                            6 = special mode*/
+/*
+	7                                    1-n             execute macro button P2 */
+	public static CommandMessage macroButtonCmd( int buttonNo ) {
+		return new CommandMessage(CMD_MACRO_BUTTON,0,buttonNo);
+	}
+/*
     8                  0-3                               set energy cost to P1
                                                             0 = low
                                                             1 = mid
@@ -185,6 +293,9 @@ Command           Parameter 1     Parameter 2         Description
      69               0-1            0-n             set thermostat P2 fan mode to P1
                                                          0 = auto
                                                          1 = on
+     70                0/255          0-n             set thermostat P2 hold mode to P1
+                                                         0 = off
+                                                         255 = hold
 For the following two commands, temperatures are stored in the Omni temperature format (see Appendix C).
 Command           Parameter 1     Parameter 2         Description
                        P1            P2
@@ -192,10 +303,6 @@ Command           Parameter 1     Parameter 2         Description
                                                       P2 = 0 means all thermostats
      72               -50 to 50      0-n             raise/lower temp P2 high/cool setting by P1
                                                       P2 = 0 means all thermostats
-                      0/255          0-n             set thermostat P2 hold mode to P1
-     70
-                                                         0 = off
-                                                         255 = hold
      80                              1-n             show message P2 (with beep and LED)
      86               0-2            1-n             show message P2
                                                       P1 = mode
@@ -204,8 +311,7 @@ Command           Parameter 1     Parameter 2         Description
      81                              1-n             log message P2
      82               0-n            0-n             clear message P2 (0=all)
                                                       if clear all messages, P1 = area (0=all)
-                                     1-n             say message P2
-     83
+     83                              1-n             say message P2
      84               1-n            1-n             phone number P1 and say message P2
      85               1-n            1-n             send message P2 out serial port P1
                                   Copyright © 2008 Home Automation, Inc.
@@ -337,6 +443,7 @@ Command Parameter 1 Parameter 2       Description
 	public static int CMD_UNIT_ON = 1;
 	public static int CMD_UNIT_AREA_ALL_OFF = 2;
 	public static int CMD_UNIT_AREA_ALL_ON = 3;
+	public static int CMD_MACRO_BUTTON = 7;
 	public static int CMD_UNIT_PERCENT = 9;
 	public static int CMD_UNIT_LO9_LEVEL_HIGH7 = 101;
 	public static int CMD_UNIT_DECREMENT_COUNTER = 10;
@@ -345,6 +452,7 @@ Command Parameter 1 Parameter 2       Description
 	public static int CMD_UNIT_LO9_RAMP_HIGH7 = 13;
 	public static int CMD_UNIT_LIGHTOLIER = 14;
 	public static int CMD_UNIT_UPB_REQ_STATUS = 15;
+	public static int CMD_UNIT_UPB_DIM_STEP_BASE = 16;
 	public static int CMD_UNIT_UPB_DIM_STEP_1 = 17;
 	public static int CMD_UNIT_UPB_DIM_STEP_2 = 18;
 	public static int CMD_UNIT_UPB_DIM_STEP_3 = 19;
@@ -354,6 +462,7 @@ Command Parameter 1 Parameter 2       Description
 	public static int CMD_UNIT_UPB_DIM_STEP_7 = 23;
 	public static int CMD_UNIT_UPB_DIM_STEP_8 = 24;
 	public static int CMD_UNIT_UPB_DIM_STEP_9 = 25;
+	public static int CMD_UNIT_UPB_BRIGHTEN_STEP_BASE = 32;
 	public static int CMD_UNIT_UPB_BRIGHTEN_STEP_1 = 33;
 	public static int CMD_UNIT_UPB_BRIGHTEN_STEP_2 = 34;
 	public static int CMD_UNIT_UPB_BRIGHTEN_STEP_3 = 35;
@@ -421,13 +530,7 @@ Command Parameter 1 Parameter 2       Description
 	public static int CMD_AUDIO_ZONE_SET_VOLUME = 113;
 	public static int CMD_AUDIO_ZONE_SET_SOURCE = 114;
 	public static int CMD_AUDIO_ZONE_SELECT_KEY = 115;
-	
-	
-	
-	
-	
-	
-	
+
 	
 	public CommandMessage(int command, int parameter1, int parameter2) {
 		super();

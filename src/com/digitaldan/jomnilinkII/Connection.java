@@ -734,10 +734,13 @@ public class Connection extends Thread {
 			throw new OmniInvalidResponseException(msg);
 	}
 
-	public void controllerCommand(int command, int p1, int p2) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
-		Message msg = sendAndReceive(new CommandMessage(command,p1,p2));
+	public void controllerCommand( CommandMessage cmd) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
+		Message msg = sendAndReceive(cmd);
 		if(msg.getMessageType() != Message.MESG_TYPE_ACK)
 			throw new OmniInvalidResponseException(msg);
+	}
+	public void controllerCommand(int command, int p1, int p2) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
+		controllerCommand(new CommandMessage(command,p1,p2));
 	}
 
 	public void setTimeCommand(int year, int month, int day, int dayOfWeek,
