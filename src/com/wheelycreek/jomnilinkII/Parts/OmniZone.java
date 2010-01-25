@@ -18,6 +18,8 @@
  */
 package com.wheelycreek.jomnilinkII.Parts;
 
+import com.digitaldan.jomnilinkII.MessageTypes.properties.ZoneProperties;
+import com.digitaldan.jomnilinkII.MessageTypes.statuses.ZoneStatus;
 import com.wheelycreek.jomnilinkII.OmniNotifyListener;
 import com.wheelycreek.jomnilinkII.OmniPart;
 import com.wheelycreek.jomnilinkII.OmniSystem.OmniArea;
@@ -29,7 +31,7 @@ import com.wheelycreek.jomnilinkII.OmniSystem.OmniArea;
  */
 public class OmniZone extends OmniPart {
 	public enum ChangeType { ZoneType, Area, Options, Status, LatchAlarm, Alarm, Loop };
-	public enum ZoneStatus { Secure, NotReady, Trouble};
+	public enum SecureStatus { Secure, NotReady, Trouble};
 	public enum LatchAlarmStatus { AlarmSecure, AlarmTripped, AlarmReset };
 	public enum AlarmStatus { Disarmed, Armed, BypassUser, BypassSystem };
 
@@ -142,7 +144,7 @@ public class OmniZone extends OmniPart {
 		return msg;
 	}
 	
-	private ZoneStatus zone_status;
+	private SecureStatus zone_status;
 	private LatchAlarmStatus latch_alarm_status;
 	private AlarmStatus alarm_status;
 	private ZoneType zone_type;
@@ -201,9 +203,9 @@ public class OmniZone extends OmniPart {
 	 */
 	public void updateRawStatus( int rawstatus, OmniNotifyListener.NotifyType notifyType) {
 		switch (rawstatus & 0x3) {
-		case 0: updateZoneStatus(ZoneStatus.Secure, notifyType); break;
-		case 1: updateZoneStatus(ZoneStatus.NotReady, notifyType); break;
-		case 2: updateZoneStatus(ZoneStatus.Trouble, notifyType); break;
+		case 0: updateZoneStatus(SecureStatus.Secure, notifyType); break;
+		case 1: updateZoneStatus(SecureStatus.NotReady, notifyType); break;
+		case 2: updateZoneStatus(SecureStatus.Trouble, notifyType); break;
 		default: updateZoneStatus(null, notifyType);
 		}
 		switch ((rawstatus >>2) & 0x3) {
@@ -247,13 +249,13 @@ public class OmniZone extends OmniPart {
 	/** The current status of the zone. (NotReady means the sensor has been tripped)
 	 * @return the zone_status
 	 */
-	public ZoneStatus getZoneStatus() {
+	public SecureStatus getZoneStatus() {
 		return zone_status;
 	}
 	/**
 	 * @param zoneStatus the zone_status to set
 	 */
-	protected void updateZoneStatus(ZoneStatus zoneStatus, OmniNotifyListener.NotifyType notifyType) {
+	protected void updateZoneStatus(SecureStatus zoneStatus, OmniNotifyListener.NotifyType notifyType) {
 		if (zone_status != zoneStatus)  {
 			zone_status = zoneStatus;
 			this.notify(createChangeMessage(ChangeType.Status, notifyType));
@@ -340,6 +342,21 @@ public class OmniZone extends OmniPart {
 			options = this.options;
 			notify(createChangeMessage(ChangeType.Options, notifyType));
 		}
+	}
+
+	public void update(ZoneProperties prop,OmniNotifyListener.NotifyType notifyType) {
+	
+		this.updateName(prop.getName(), notifyType);
+		this.updateZoneType(ZoneType.typeAsEnum(prop.getZoneType()), notifyType);
+		this.updateRawOptions(prop.getOptions(), notifyType);
+		this.updateZoneArea(prop.getArea(), notifyType);
+		this.updateLoopValue(prop.getLoop(), notifyType);
+		this.updateRawStatus(prop.getStatus(), notifyType);
+		
+	}
+
+	public void update(ZoneStatus status, OmniNotifyListener.NotifyType notifyType) {
+		this.updateRawStatus(status.getStatus(), notifyType);
 	}
 }
 // vim: syntax=java.doxygen ts=4 sw=4 noet
