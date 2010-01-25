@@ -302,18 +302,56 @@ Command           Parameter 1     Parameter 2         Description
      71               -50 to 50      0-n             raise/lower temp P2 low/heat setting by P1
                                                       P2 = 0 means all thermostats
      72               -50 to 50      0-n             raise/lower temp P2 high/cool setting by P1
-                                                      P2 = 0 means all thermostats
-     80                              1-n             show message P2 (with beep and LED)
+                                                      P2 = 0 means all thermostats */
+/*
+	80                              1-n             show message P2 (with beep and LED)
      86               0-2            1-n             show message P2
                                                       P1 = mode
                                                          1 = no beep
                                                          2 = no beep or LED
+
+*/
+	public enum MessageLevel {BeepLed, Led, None};
+	public static CommandMessage messageDisplayCmd( int messageNo, MessageLevel level) {
+		if (messageNo > 1) 
+			switch (level){
+			case BeepLed:
+				return new CommandMessage(CMD_MESSAGE_SHOW_MESSAGE_WITH_BEEP_AND_LED,0,messageNo);
+			case Led:
+				return new CommandMessage(CMD_MESSAGE_SHOW_MESSAGE_WITH_BEEP_OR_LED, 1,messageNo);
+			case None:
+				return new CommandMessage(CMD_MESSAGE_SHOW_MESSAGE_WITH_BEEP_OR_LED, 2,messageNo);
+			}
+		return null;
+	}
+	/*
      81                              1-n             log message P2
-     82               0-n            0-n             clear message P2 (0=all)
+     */
+	public static CommandMessage messageLogCmd( int messageNo ) {
+		return new CommandMessage(CMD_MESSAGE_LOG_MESSAGE ,0,messageNo);
+	}
+/*     82               0-n            0-n             clear message P2 (0=all)
                                                       if clear all messages, P1 = area (0=all)
-     83                              1-n             say message P2
-     84               1-n            1-n             phone number P1 and say message P2
-     85               1-n            1-n             send message P2 out serial port P1
+						      */
+	public static CommandMessage messageClearCmd( int messageNo ) {
+		return new CommandMessage(CMD_MESSAGE_CLEAR_MESSAGE ,0,messageNo);
+	}
+	public static CommandMessage messageClearAllCmd() {
+		return messageClearCmd(0);
+	}
+//     83                              1-n             say message P2
+	public static CommandMessage messageSayCmd( int messageNo ) {
+		return new CommandMessage(CMD_MESSAGE_SAY_MESSAGE ,0,messageNo);
+	}
+//     84               1-n            1-n             phone number P1 and say message P2
+	public static CommandMessage messagePhoneSayCmd( int phoneNoEntry, int messageNo ) {
+		return new CommandMessage(CMD_MESSAGE_PHONE_AND_SAY_MESSAGE ,phoneNoEntry, messageNo);
+	}
+//     85               1-n            1-n             send message P2 out serial port P1
+	public static CommandMessage messageSerialSendCmd( int serialPort, int messageNo ) {
+		return new CommandMessage(CMD_MESSAGE_SEND_MESSAGE_TO_SERIAL_PORT, serialPort, messageNo);
+	}
+	/*
                                   Copyright © 2008 Home Automation, Inc.
                                              All Rights Reserved
                                                     Page 39

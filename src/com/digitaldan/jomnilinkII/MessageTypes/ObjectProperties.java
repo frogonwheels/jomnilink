@@ -22,32 +22,32 @@ import com.digitaldan.jomnilinkII.Message;
 
 public class ObjectProperties implements Message{
 	//dc -e "16o 2i 00000001 p"
-	public static int 	FILTER_1_NONE		 		= 0;
-	public static int 	FILTER_1_NAMED_UNAMED 		= 0;
-	public static int 	FILTER_1_NAMED				= 1;
-	public static int	FILTER_1_UNAMED				= 2;
+	public static final int 	FILTER_1_NONE		 		= 0;
+	public static final int 	FILTER_1_NAMED_UNAMED 		= 0;
+	public static final int 	FILTER_1_NAMED				= 1;
+	public static final int	FILTER_1_UNAMED				= 2;
 
-	public static int	FILTER_2_NONE				= 0;
-	public static int[]	FILTER_2_AREA_BITMAP		= {0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80}; //00000001
-	public static int	FILTER_2_AREA_1				= 0x01; //00000001
-	public static int	FILTER_2_AREA_2				= 0x02; //00000010
-	public static int	FILTER_2_AREA_3				= 0x04; //00000100
-	public static int	FILTER_2_AREA_4				= 0x08; //00001000
-	public static int	FILTER_2_AREA_5				= 0x10; //00010000
-	public static int	FILTER_2_AREA_6				= 0x20; //00100000
-	public static int	FILTER_2_AREA_7				= 0x40; //01000000
-	public static int	FILTER_2_AREA_8				= 0x80; //10000000
-	public static int	FILTER_2_AREA_ALL			= 0xFF; //11111111
+	public static final int	FILTER_2_NONE				= 0;
+	public static final int[]	FILTER_2_AREA_BITMAP		= {0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80}; //00000001
+	public static final int	FILTER_2_AREA_1				= 0x01; //00000001
+	public static final int	FILTER_2_AREA_2				= 0x02; //00000010
+	public static final int	FILTER_2_AREA_3				= 0x04; //00000100
+	public static final int	FILTER_2_AREA_4				= 0x08; //00001000
+	public static final int	FILTER_2_AREA_5				= 0x10; //00010000
+	public static final int	FILTER_2_AREA_6				= 0x20; //00100000
+	public static final int	FILTER_2_AREA_7				= 0x40; //01000000
+	public static final int	FILTER_2_AREA_8				= 0x80; //10000000
+	public static final int	FILTER_2_AREA_ALL			= 0xFF; //11111111
 
-	public static int	FILTER_3_NONE				= 0;
-	public static int	FILTER_3_ANY_LOAD			= 0;
-	public static int	FILTER_3_ROOM_LOAD_START	= 1;
-	public static int	FILTER_3_ROOM_LOAD_END		= 31; //load in room filter is 1 though 31
-	public static int	FILTER_3_ROOM				= 254;
-	public static int	FILTER_3_INDEPENDENT_LOAD	= 255;
+	public static final int	FILTER_3_NONE				= 0;
+	public static final int	FILTER_3_ANY_LOAD			= 0;
+	public static final int	FILTER_3_ROOM_LOAD_START	= 1;
+	public static final int	FILTER_3_ROOM_LOAD_END		= 31; //load in room filter is 1 though 31
+	public static final int	FILTER_3_ROOM				= 254;
+	public static final int	FILTER_3_INDEPENDENT_LOAD	= 255;
 	
-	protected int objectType;
-	protected int number;
+	protected final int objectType;
+	protected final int number;
 	protected String name;
 /*
  * OBJECT PROPERTIES 
