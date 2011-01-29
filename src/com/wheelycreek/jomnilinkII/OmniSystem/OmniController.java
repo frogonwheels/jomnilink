@@ -1112,6 +1112,13 @@ public class OmniController implements OmniNotifyListener {
 		
 	}
 	
+	/** Get the name of an Omni Part. 
+	 * @param area  The part type
+	 * @param index  The part # (from 1)
+	 * @return 
+	 * @throws OmniNotConnectedException
+	 * @throws Exception
+	 */
 	public String getName(OmniArea area, int index) throws OmniNotConnectedException, Exception {
 		if (index < 0)
 			return null;
@@ -1143,7 +1150,8 @@ public class OmniController implements OmniNotifyListener {
 	public void setFeatures(SystemFeatures sys_features) {
 		this.sys_features = sys_features;
 	}
-	/**
+
+	/** Get at various system features information.
 	 * @return the sys_features
 	 * @throws OmniUnknownMessageTypeException 
 	 * @throws OmniInvalidResponseException 
@@ -1252,12 +1260,18 @@ public class OmniController implements OmniNotifyListener {
 
 	private Vector<OmniNotifyListener> notificationListeners;
 	
+	/** Add a notification handler for property changes.
+	 * @param listener
+	 */
 	public void addNotificationListener(OmniNotifyListener listener){
 		synchronized (notificationListeners) {
 			notificationListeners.add(listener);
 		}
 	}
-
+	
+	/** Remove the notification handler.
+	 * @param listener
+	 */
 	public void removeNotificationListener(OmniNotifyListener listener){
 		synchronized (notificationListeners) {
 			if(notificationListeners.contains(listener))
@@ -1265,10 +1279,12 @@ public class OmniController implements OmniNotifyListener {
 		}
 	}
 	
+	/** Pass on an command from and ActionRequest message.
+	 */
 	protected void sendAction( ActionRequest msg ) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
 		omni.controllerCommand(msg.getCommand());
 	}
-	
+
 	/** Respond to a change type request from an OmniPart
 	 * @param msg  Message from omni-part with notifyType==ChangeRequest
 	 */
