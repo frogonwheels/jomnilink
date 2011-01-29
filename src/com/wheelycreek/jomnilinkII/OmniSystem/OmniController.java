@@ -38,6 +38,7 @@ import com.digitaldan.jomnilinkII.MessageTypes.NameData;
 import com.digitaldan.jomnilinkII.MessageTypes.ObjectProperties;
 import com.digitaldan.jomnilinkII.MessageTypes.ObjectStatus;
 import com.digitaldan.jomnilinkII.MessageTypes.OtherEventNotifications;
+import com.digitaldan.jomnilinkII.MessageTypes.SecurityCodeValidation;
 import com.digitaldan.jomnilinkII.MessageTypes.SystemFeatures;
 import com.digitaldan.jomnilinkII.MessageTypes.SystemFormats;
 import com.digitaldan.jomnilinkII.MessageTypes.SystemInformation;
@@ -60,6 +61,7 @@ import com.wheelycreek.jomnilinkII.OmniNotifyListener;
 import com.wheelycreek.jomnilinkII.OmniPart;
 import com.wheelycreek.jomnilinkII.OmniPart.NameChangeMessage;
 import com.wheelycreek.jomnilinkII.Parts.OmniButton;
+import com.wheelycreek.jomnilinkII.Parts.OmniCode;
 import com.wheelycreek.jomnilinkII.Parts.OmniDevice;
 import com.wheelycreek.jomnilinkII.Parts.OmniFlag;
 import com.wheelycreek.jomnilinkII.Parts.OmniMessage;
@@ -68,6 +70,7 @@ import com.wheelycreek.jomnilinkII.Parts.OmniRoom;
 import com.wheelycreek.jomnilinkII.Parts.OmniSensor;
 import com.wheelycreek.jomnilinkII.Parts.OmniUnit;
 import com.wheelycreek.jomnilinkII.Parts.OmniZone;
+import com.wheelycreek.jomnilinkII.Parts.OmniCode.UserLevel;
 
 
 
@@ -1255,6 +1258,39 @@ public class OmniController implements OmniNotifyListener {
 			initZoneReady();
 		
 		return (zones_ready.getZoneReady(zone));
+	}
+
+	
+	public OmniCode validateSecurity( int area, String code) throws OmniNotConnectedException {
+		if (code == null || code.length() != 4)
+			return OmniCode.INVALID_USER;
+		
+		int codes[] = new int[4];
+		
+		for (int idx = 0; idx < 4 ; ++idx) {
+			int chDiff = code.charAt(idx) - '0';
+			codes[idx] = chDiff;
+			if (chDiff < 0 || chDiff > 9)
+				return OmniCode.INVALID_USER;
+		}
+		try {
+			SecurityCodeValidation validate = omni.reqSecurityCodeValidation(area, codes[0],codes[1],codes[2],codes[3]);
+			int codeNumber = validate.getCodeNumber();
+			if (codeNumber == OmniCode.DURESS_CODE)
+				return OmniCode.DURESS_USER;
+			if (validate.getAuthorityLevel() == 0)
+				return OmniCode.INVALID_USER;
+			String codename = getName(OmniArea.Code,codeNumber);
+			return new OmniCode(validate.getCodeNumber(),codename,UserLevel.typeAsEnum(validate.getAuthorityLevel()));
+		} catch (OmniInvalidResponseException e) {
+			return OmniCode.INVALID_USER;
+		} catch (OmniUnknownMessageTypeException e) {
+			e.printStackTrace();
+			return OmniCode.INVALID_USER;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return OmniCode.INVALID_USER;
+		}
 	}
 
 	private Vector<OmniNotifyListener> notificationListeners;
