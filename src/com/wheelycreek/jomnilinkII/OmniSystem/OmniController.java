@@ -925,6 +925,7 @@ public class OmniController implements OmniNotifyListener {
 			OmniButton button = buttons.get(objnum);
 			if (button == null) {
 				button = new OmniButton(objnum);
+				button.updateName(bprop.getName(), NotifyType.Initial);
 				buttons.put(objnum, button);
 				button.addNotificationListener(this);
 			}
