@@ -113,7 +113,7 @@ public class OmniUnit extends OmniPart {
 	}
 	/** The derived unit class variant.
 	  */
-	protected UnitVariant unit_variant;
+	final protected UnitVariant unit_variant;
 	/** The derived unit class variant.
 	  */
 	protected UnitType unit_type;
@@ -128,7 +128,7 @@ public class OmniUnit extends OmniPart {
 	 */
 	protected int time_remain_sec;
 	protected java.util.Date when_set;
-	private boolean switched_on = false;
+	protected boolean switched_on = false;
 	protected int value = 0;
 	
 
@@ -266,6 +266,7 @@ For counters:
 	public void setUnitType(UnitType unitType) {
 		updateUnitType(unitType, OmniNotifyListener.NotifyType.ChangeRequest);
 	}
+
 	public void updateUnitType(UnitType unitType, OmniNotifyListener.NotifyType notifyType) {
 		if (unitType != this.unit_type) {
 			unit_type = unitType;

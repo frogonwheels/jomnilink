@@ -18,7 +18,30 @@ public class OmniDevice extends OmniUnit {
 	public OmniDevice(int number) {
 		super(UnitVariant.Device, number);
 	}
-
+	/**
+	 * @return the switched_on
+	 */
+	public boolean isSwitchedOn() {
+		return switched_on;
+	}
+	/**
+	 * @param switchedOn the switched_on to set
+	 */
+	public void setSwitchedOn(boolean switchedOn) {
+		switched_on = switchedOn;
+	}
+	/**
+	 * @return the value
+	 */
+	public int getValue() {
+		return value;
+	}
+	/**
+	 * @param value the value to set
+	 */
+	public void setValue(int value) {
+		this.value = value;
+	}
 	/* (non-Javadoc)
 	 * @see com.wheelycreek.jomnilinkII.Parts.OmniUnit#rawStatusChanged(com.wheelycreek.jomnilinkII.OmniNotifyListener.NotifyType)
 	 */

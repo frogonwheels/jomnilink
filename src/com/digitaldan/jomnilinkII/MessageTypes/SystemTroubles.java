@@ -53,8 +53,47 @@ The system trouble conditions are shown below.
 		this.troubles = troubles;
 	}
 
+	public enum SystemTrouble {
+		FREEZE(1,"Freeze"),
+		BATTERY(2,"Battery low"),
+		MAINS(3,"AC power"),
+		PHONE(4,"Phone line"),
+		DIGCOM(5,"Digital communicator"),
+		FUSE(6,"Fuse")
+		//FREEZE2(7,"Freeze"),
+		//BATTERY2(8,"Battery low")	 
+		;
+		final public int rawID;
+		final public String xmlID;
+		private SystemTrouble(int rawID, String xmlID) {
+			this.rawID = rawID;
+			this.xmlID = xmlID;
+		}
+		static public SystemTrouble rawAsEnum(int id) {
+			switch (id) {
+			case 1: return FREEZE;
+			case 2: return BATTERY;
+			case 3: return MAINS;
+			case 4: return PHONE;
+			case 5: return DIGCOM;
+			case 6: return FUSE;
+			case 7: return FREEZE;
+			case 8: return BATTERY;
+			default: return null;
+			}
+		}
+	}
 	public int[] getTroubles() {
 		return troubles;
+	}
+	public int getTroubleCount() {
+		if (troubles == null) return 0;
+		return troubles.length;
+	}
+	public SystemTrouble getTrouble(int i) {
+		if (troubles == null || i < 0 || i >= troubles.length)
+			return null;
+		return SystemTrouble.rawAsEnum(troubles[i]);
 	}
 	
 	public int getMessageType() {

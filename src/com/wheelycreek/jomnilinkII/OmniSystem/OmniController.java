@@ -21,9 +21,11 @@ package com.wheelycreek.jomnilinkII.OmniSystem;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.Vector;
+import java.util.Map.Entry;
 
 import com.digitaldan.jomnilinkII.Connection;
 import com.digitaldan.jomnilinkII.Message;
@@ -105,21 +107,21 @@ public class OmniController implements OmniNotifyListener {
 	}
 
 	/** Debug channels (all) */
-	static final int dcAll = 0x3f;
+	public static final int dcAll = 0x3f;
 	/** Debug channel for connections */
-	static final int dcConnection = 0x1;
+	public static final int dcConnection = 0x1;
 	/** Debug channel for messages */
-	static final int dcMessage = 0x2;
+	public static final int dcMessage = 0x2;
 	/** Debug channel for zones*/
-	static final int dcZones = 0x4;
+	public static final int dcZones = 0x4;
 	/** Debug channel for child messages */
-	static final int dcChildMessage = 0x8;
+	public static final int dcChildMessage = 0x8;
 	/** Debug channel for sensors */
-	static final int dcSensors = 0x10;
+	public static final int dcSensors = 0x10;
 	/** Debug channel for units*/
-	static final int dcUnits = 0x20;
+	public static final int dcUnits = 0x20;
 	/** Debug channel for messages*/
-	static final int dcMsgs = 0x40;
+	public static final int dcMsgs = 0x40;
 	private int debug_channels;
 
 	/** Check all the specified debug channels are set.
@@ -151,26 +153,26 @@ public class OmniController implements OmniNotifyListener {
 	private String omni_key;
 
 	// Collections of names. Used for doing lookups.
-	private SortedMap<OmniArea, Vector<String> > names;
+	protected SortedMap<OmniArea, Vector<String> > names;
 
 	// Collections of Omni parts.
-	private SortedMap<Integer, OmniZone> zones;
-	private SortedMap<Integer, OmniSensor> sensors;
-	private SortedMap<Integer, OmniUnit> units;
-	private SortedMap<Integer, OmniOutput> outputs;
-	private SortedMap<Integer, OmniDevice> devices;
-	private SortedMap<Integer, OmniRoom> rooms;
-	private SortedMap<Integer, OmniFlag> flags;
-	private SortedMap<Integer, OmniButton> buttons;
-	private SortedMap<Integer, OmniMessage> messages;
+	protected SortedMap<Integer, OmniZone> zones;
+	protected SortedMap<Integer, OmniSensor> sensors;
+	protected SortedMap<Integer, OmniUnit> units;
+	protected SortedMap<Integer, OmniOutput> outputs;
+	protected SortedMap<Integer, OmniDevice> devices;
+	protected SortedMap<Integer, OmniRoom> rooms;
+	protected SortedMap<Integer, OmniFlag> flags;
+	protected SortedMap<Integer, OmniButton> buttons;
+	protected SortedMap<Integer, OmniMessage> messages;
 	
 	// Various one-off bits of system information.
-	private SystemFeatures    sys_features;
-	private SystemFormats     sys_formats;
-	private SystemInformation sys_info;
-	private SystemStatus      sys_status;
-	private SystemTroubles    sys_troubles;
-	private ZoneReadyStatus   zones_ready;
+	protected SystemFeatures    sys_features;
+	protected SystemFormats     sys_formats;
+	protected SystemInformation sys_info;
+	protected SystemStatus      sys_status;
+	protected SystemTroubles    sys_troubles;
+	protected ZoneReadyStatus   zones_ready;
 	
 	/** Construct required arrays.
 	  * Called by constructors.
@@ -438,8 +440,11 @@ public class OmniController implements OmniNotifyListener {
 	 * @return a loaded zone.
 	 * @throws Exception 
 	 * @throws OmniNotConnectedException 
+	 * @throws OmniUnknownMessageTypeException 
+	 * @throws OmniInvalidResponseException 
+	 * @throws IOException 
 	 */
-	public OmniZone getZone(int zonenr) throws OmniNotConnectedException, Exception {
+	public OmniZone getZone(int zonenr) throws OmniNotConnectedException, IOException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
 		OmniZone result = zones.get(zonenr);
 		if (result == null) {
 			// Build a new 
@@ -499,13 +504,27 @@ public class OmniController implements OmniNotifyListener {
 	}
 
 	/** Load all available zones as objects.
+	 * @throws OmniUnknownMessageTypeException 
+	 * @throws OmniInvalidResponseException 
+	 * @throws OmniNotConnectedException 
+	 * @throws IOException 
 	  */
-	protected void loadZones() throws Exception {
+	protected void loadZones() throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
 		loadZones(1,0);
 	}
+	protected  Set<Entry<Integer, OmniZone>> getZonesSet() throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
+		if (zones.isEmpty())
+			loadZones();
+		return zones.entrySet();
+	}
+	
 	/** Load a range of zones as objects
+	 * @throws OmniUnknownMessageTypeException 
+	 * @throws OmniInvalidResponseException 
+	 * @throws OmniNotConnectedException 
+	 * @throws IOException 
 	  */
-	protected void loadZones(int startZone, int endZone) throws Exception {
+	protected void loadZones(int startZone, int endZone) throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException{
 		
 		if (endZone <= 0)
 			endZone = getCapacity(OmniArea.Zone);
@@ -683,6 +702,12 @@ public class OmniController implements OmniNotifyListener {
 			return null;
 	}
 	
+	public Iterator<Entry<Integer, OmniDevice>> getDeviceIter() throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
+		if (devices.isEmpty() && units.isEmpty())
+			loadUnits();
+		return devices.entrySet().iterator();
+	}
+	
 	/** Get a Device object by number.
 	 * @throws OmniUnknownMessageTypeException 
 	 * @throws OmniInvalidResponseException 
@@ -831,9 +856,9 @@ public class OmniController implements OmniNotifyListener {
 			OmniUnit unit = iter.next();
 			if (unit != null) {
 				ObjectStatus status = omni.reqObjectStatus(OmniArea.Unit.get_objtype_msg(), unit.number, unit.number);
-				UnitStatus [] sensorstats = (UnitStatus[])status.getStatuses();
-				if (unit.number == sensorstats[0].getNumber())
-					unit.update(sensorstats[0], NotifyType.Notify);
+				UnitStatus [] unitstats = (UnitStatus[])status.getStatuses();
+				if (unit.number == unitstats[0].getNumber())
+					unit.update(unitstats[0], NotifyType.Notify);
 			}
 		}
 	}
@@ -859,12 +884,12 @@ public class OmniController implements OmniNotifyListener {
 	 * @throws Exception 
 	 * @throws OmniNotConnectedException 
 	 */
-	public OmniZone getButton(int buttonNo) throws OmniNotConnectedException, Exception {
-		OmniZone result = zones.get(buttonNo);
-		if (result == null) {
+	public OmniButton getButton(int buttonNo) throws OmniNotConnectedException, Exception {
+		OmniButton result = buttons.get(buttonNo);
+		if (result == null && buttonNo >= 1) {
 			// Build a new 
 			loadButtons(buttonNo, buttonNo);
-			result = zones.get(buttonNo);
+			result = buttons.get(buttonNo);
 		}
 		return result;
 	}
@@ -879,7 +904,7 @@ public class OmniController implements OmniNotifyListener {
 	/** Load buttons.
 	  */
 	protected void loadButtons() throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
-	    loadButtons(1,-1);
+		loadButtons(1,-1);
 	}
 	
 
@@ -932,7 +957,7 @@ public class OmniController implements OmniNotifyListener {
 	/** Load messages.
 	  */
 	protected void loadMessages() throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
-	    loadMessages(1,-1);
+		loadMessages(1,-1);
 	}
 	
 
@@ -1073,7 +1098,7 @@ public class OmniController implements OmniNotifyListener {
 		else
 			strings = names.get(area);
 		if (strings == null) {
-			strings = new Vector<String>();
+			strings = create_loaded_name_vector(area);
 			names.put(area, strings);
 		}
 		return strings;
@@ -1128,10 +1153,10 @@ public class OmniController implements OmniNotifyListener {
 			return part.getName();
 		
 		Vector<String> vectors = get_vectors(area);
-		if (vectors != null)
+		if (vectors != null && (index <= vectors.size() ))
 			return vectors.get(index-1);
 		else
-			return null;
+			return String.format("%s %d", area.name(), index);
 	}
 	
 
@@ -1143,12 +1168,6 @@ public class OmniController implements OmniNotifyListener {
 	}
 	public String getAreaName(int index) throws OmniNotConnectedException, Exception {
 		return getName(OmniArea.Area, index);
-	}
-	/**
-	 * @param sys_features the sys_features to set
-	 */
-	public void setFeatures(SystemFeatures sys_features) {
-		this.sys_features = sys_features;
 	}
 
 	/** Get at various system features information.
@@ -1163,12 +1182,7 @@ public class OmniController implements OmniNotifyListener {
 			sys_features = omni.reqSystemFeatures();
 		return sys_features;
 	}
-	/**
-	 * @param sys_formats the sys_formats to set
-	 */
-	protected void setFormats(SystemFormats sys_formats) {
-		this.sys_formats = sys_formats;
-	}
+
 	/**
 	 * @return the sys_formats
 	 * @throws OmniUnknownMessageTypeException 
@@ -1181,12 +1195,7 @@ public class OmniController implements OmniNotifyListener {
 			sys_formats = omni.reqSystemFormats();
 		return sys_formats;
 	}
-	/**
-	 * @param sys_info the sys_info to set
-	 */
-	protected void setInfo(SystemInformation sys_info) {
-		this.sys_info = sys_info;
-	}
+
 	/**
 	 * @return the sys_info
 	 * @throws OmniUnknownMessageTypeException 
@@ -1199,12 +1208,7 @@ public class OmniController implements OmniNotifyListener {
 			sys_info = omni.reqSystemInformation();
 		return sys_info;
 	}
-	/**
-	 * @param sys_status the sys_status to set
-	 */
-	public void setStatus(SystemStatus sys_status) {
-		this.sys_status = sys_status;
-	}
+
 	/**
 	 * @return the sys_status
 	 * @throws OmniUnknownMessageTypeException 
@@ -1217,12 +1221,7 @@ public class OmniController implements OmniNotifyListener {
 			sys_status = omni.reqSystemStatus();
 		return sys_status;
 	}
-	/**
-	 * @param sys_troubles the sys_troubles to set
-	 */
-	public void setTroubles(SystemTroubles sys_troubles) {
-		this.sys_troubles = sys_troubles;
-	}
+
 	/**
 	 * @return the sys_troubles
 	 * @throws OmniUnknownMessageTypeException 

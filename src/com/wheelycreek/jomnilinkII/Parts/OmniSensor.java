@@ -78,17 +78,18 @@ public class OmniSensor extends OmniPart {
 	}
 	/** Represent types of Sensor changes.
 	 */
-	enum ChangeType { Status, Type, Temperature, HeatSet, CoolSet};
+	public enum ChangeType { Status, Type, Temperature, HeatSet, CoolSet};
 
 	/** Message sent when OmniZone changes.
 	 */
 	public class SensorChangeMessage extends OmniNotifyListener.ChangeMessage {
-		public ChangeType change_type;
+		private ChangeType change_type;
+		public ChangeType getChangeType() { return change_type; }
 
 		/** Create a change message for a sensor
 		 * @param area  The area. 
 		 * @param number  The number of the sensor.
-		 * @param notifyType  The source of the notificatio
+		 * @param notifyType  The source of the notification
 		 * @param changeType The type of change
 		 */
 		public SensorChangeMessage(OmniArea area, int number, OmniNotifyListener.NotifyType notifyType,

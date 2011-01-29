@@ -33,49 +33,63 @@ public class OmniZone extends OmniPart {
 	public enum ChangeType { ZoneType, Area, Options, Status, LatchAlarm, Alarm, Loop };
 	public enum SecureStatus { Secure, NotReady, Trouble};
 	public enum LatchAlarmStatus { AlarmSecure, AlarmTripped, AlarmReset };
-	public enum AlarmStatus { Disarmed, Armed, BypassUser, BypassSystem };
+	
+	public enum AlarmStatus { 
+		Disarmed("disarmed"), Armed("armed"), 
+		BypassUser("bypass_user"), BypassSystem("bypass_system");
+		private final String xmlId;
+		private AlarmStatus(String xmlId) {
+			this.xmlId = xmlId;
+		}
+		public String getXMLId() {
+			return xmlId;
+		} 
+	};
 
 	public enum ZoneType {
-		EntryExit(0, "Entry/Exit"),
-		Perimeter(1, "Perimeter"),
-		NightInt(2, "Night Interior"),
-		AwayInt(3, "Away Interior"),
-		DoubEntryDelay(4, "Double Entry Delay"),
-		QuadEntryDelay(5, "Quadruple Entry Delay"),
-		LatchPerimeter(6, "Latching Perimeter"),
-		LatchNightInt(7, "Latching Night Interior"),
-		LatchAwayInt(8, "Latching Away Interior"),
-		Panic(16, "Panic"),
-		PoliceEm(17, "Police Emergency"),
-		Duress(18, "Duress"),
-		Tamper(19, "Tamper"),
-		LatchTamper(20, "Latching Tamper"),
-		Fire(32, "Fire"),
-		FireEm(33, "Fire Emergency"),
-		GasAlarm(34, "Gas Alarm"),
-		AuxEm(48, "Auxiliary Emergency"),
-		Trouble(49, "Trouble"),
-		Freeze(54, "Freeze"),
-		Water(55, "Water"),
-		FireTamper(56, "Fire Tamper"),
-		Auxiliary(64, "Auxiliary"),
-		KeyswitchInput(65, "Keyswitch Input"),
-		ProgEnergySaver(80, "Programmable Energy Saver Module"),
-		OutdoorTemp(81, "Outdoor Temperature"),
-		Temp(82, "Temperature"),
-		TempAlarm(83, "Temperature Alarm"),
-		Humidity(84, "Humidity"),
-		ExtOutdoorTemp(85, "Extended Range Outdoor Temperature"),
-		ExtTemp(86, "Extended Range Temperature"),
-		ExtTempAlarm(87, "Extended Range Temperature Alarm");
+		EntryExit(0, "entryexit", "Entry/Exit"),
+		Perimeter(1, "perim", "Perimeter"),
+		NightInt(2,  "int_night", "Night Interior"),
+		AwayInt(3, "int_away",  "Away Interior"),
+		DoubEntryDelay(4, "entry_2x", "Double Entry Delay"),
+		QuadEntryDelay(5, "entry_4x", "Quadruple Entry Delay"),
+		LatchPerimeter(6, "perim_latch", "Latching Perimeter"),
+		LatchNightInt(7,  "int_night_latch", "Latching Night Interior"),
+		LatchAwayInt(8,   "int_away_latch",  "Latching Away Interior"),
+		Panic(16, "panic", "Panic"),
+		PoliceEm(17, "emerg_police", "Police Emergency"),
+		Duress(18, "duress", "Duress"),
+		Tamper(19, "tamper", "Tamper"),
+		LatchTamper(20, "tamper_latch", "Latching Tamper"),
+		Fire(32, "fire", "Fire"),
+		FireEm(33, "emerg_fire", "Fire Emergency"),
+		GasAlarm(34,"gas", "Gas Alarm"),
+		AuxEm(48, "emerg_aux", "Auxiliary Emergency"),
+		Trouble(49,"trouble", "Trouble"),
+		Freeze(54, "freeze", "Freeze"),
+		Water(55, "water", "Water"),
+		FireTamper(56, "tamper_fire", "Fire Tamper"),
+		Auxiliary(64, "aux", "Auxiliary"),
+		KeyswitchInput(65, "keyswitch", "Keyswitch Input"),
+		ProgEnergySaver(80, "energysaver", "Programmable Energy Saver Module"),
+		OutdoorTemp(81, "temp_ext", "Outdoor Temperature"),
+		Temp(82, "temp_int", "Temperature"),
+		TempAlarm(83, "temp_alarm", "Temperature Alarm"),
+		Humidity(84, "humidity", "Humidity"),
+		ExtOutdoorTemp(85, "temp_ext_ex", "Extended Range Outdoor Temperature"),
+		ExtTemp(86, "temp_int_ex", "Extended Range Temperature"),
+		ExtTempAlarm(87, "temp_alarm_ex", "Extended Range Temperature Alarm");
 
-		private int rawType;
-		private String desc;
+		private final int rawType;
+		private final String desc;
+		private final String xmlId;
+		
 		public int getRawType() { return rawType;}
 		public String getDesc() { return  desc; }
-		private ZoneType( int rawType, String desc) {
+		private ZoneType( int rawType, String xmlId, String desc) {
 			this.rawType = rawType;
 			this.desc = desc;
+			this.xmlId = xmlId;
 		}
 
 		public static ZoneType typeAsEnum( int rawType ) {
@@ -114,6 +128,9 @@ public class OmniZone extends OmniPart {
 				case 87: return ExtTempAlarm;
 				default: return null;
 			}
+		}
+		public String getXMLId() {
+			return xmlId;
 		}
 	}
 	
