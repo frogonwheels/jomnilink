@@ -312,7 +312,7 @@ public class MessageFactory {
 		int revision = in.readUnsignedByte();
 		byte[] phoneBytes = new  byte[15];
 		in.readFully(phoneBytes);
-		String phone = new String(phoneBytes);
+		String phone = readName(phoneBytes);
 		return new SystemInformation(model,major,minor,revision,phone);
 	}
 	
