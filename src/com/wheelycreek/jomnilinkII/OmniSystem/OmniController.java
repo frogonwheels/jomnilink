@@ -28,6 +28,7 @@ import java.util.Vector;
 import java.util.Map.Entry;
 
 import com.digitaldan.jomnilinkII.Connection;
+import com.digitaldan.jomnilinkII.DisconnectListener;
 import com.digitaldan.jomnilinkII.Message;
 import com.digitaldan.jomnilinkII.NotificationListener;
 import com.digitaldan.jomnilinkII.OmniInvalidResponseException;
@@ -145,6 +146,7 @@ public class OmniController implements OmniNotifyListener {
 	/** Connection to the host.
 	 */
 	protected Connection omni;
+	protected boolean shutting_down;
 	/** The specified omni host.
 	 */
 	private String omni_host;
@@ -198,6 +200,21 @@ public class OmniController implements OmniNotifyListener {
 	  */
 	public OmniController() {
 		constructArrays();
+		shutting_down = false;
+	}
+	
+	@Override
+	protected void finalize() throws Throwable {
+		shutting_down = true;
+		super.finalize();
+	}
+	
+	public void shutdown() {
+		shutting_down = true;
+		if (omni != null) {
+			omni.disconnect();
+			omni = null;
+		}
 	}
 	
 	/** Connect to a controller.
@@ -254,6 +271,26 @@ public class OmniController implements OmniNotifyListener {
 			public void objectStausNotification(ObjectStatus s) { statusNotify(s); }
 			@Override
 			public void otherEventNotification(OtherEventNotifications o) {	otherEventNotify(o);}
+		});
+		omni.addDisconnectListener(new DisconnectListener() {
+			
+			@Override
+			public void notConnectedEvent(Exception e) {
+				if (!shutting_down)
+					try {
+						reconnect();
+					} catch (UnknownHostException e1) {
+						if (getDebugChan(dcMsgs))
+							System.out.println("Unknown host in reconnect: "+e1.getMessage());
+					} catch (IOException e1) {
+						if (getDebugChan(dcMsgs))
+							System.out.println("IO error in reconnect: "+e1.getMessage());
+					} catch (Exception e1) {
+						if (getDebugChan(dcMsgs))
+							System.out.println("Error in reconnect: "+e1.getMessage());
+					}
+				
+			}
 		});
 		omni.enableNotifications();
 		

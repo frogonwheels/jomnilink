@@ -183,8 +183,7 @@ public class Connection extends Thread {
 		notificationHandler.setName("NotificationHandlerThread");
 		notificationHandler.start();
 		
-		/*ConnectionWatchdog*/ watchdog = new ConnectionWatchdog();
-		watchdog.setName("ConnectionWatchdogThread");
+		watchdog = new ConnectionWatchdog();
 		watchdog.start();
 	}
 	
@@ -275,6 +274,12 @@ public class Connection extends Thread {
 			return MessageFactory.fromBytes(ret.data());
 		}
 	}
+	private void notify_disconnect(Exception e){
+		disconnect();
+		lastException = e;
+		//tell listeners about exception
+		notifyDisconnectHandlers(lastException);
+	}
 
 	public void run() {
 		OmniPacket ret;
@@ -311,10 +316,7 @@ public class Connection extends Thread {
 //						System.out.println("Ignoring SocketTimeoutException, will try and send omni a ping if needed");
 //					}
 				}catch(Exception e){
-					connected = false;
-					lastException = e;
-					//tell listeners about exception
-					notifyDisconnectHandlers(lastException);
+					notify_disconnect(e);
 				} finally {
 					readLock.notifyAll();
 				}
@@ -817,7 +819,7 @@ public class Connection extends Thread {
 	
 	private class ConnectionWatchdog extends Thread {
 		public void run(){
-			this.setName("ConnectionWatchdog");
+			this.setName("Omni link Connection Watchdog");
 			while(connected){
 				if(ping &&
 						System.currentTimeMillis() >= PING_TO + lastTXMessageTime){
@@ -825,8 +827,15 @@ public class Connection extends Thread {
 						System.out.println("Pinging Server");
 					}
 					try {
-					reqSystemStatus();
-					} catch(Exception ignored){};
+						reqSystemStatus();
+					} catch (IOException e) {
+						//ignore
+					} catch (OmniNotConnectedException e) {
+						System.out.println("Server connection failed.");
+						notify_disconnect(e);
+					} catch (OmniInvalidResponseException e) {
+					} catch (OmniUnknownMessageTypeException e) {
+					}
 				}					
 				try {
 					sleep(1000);
