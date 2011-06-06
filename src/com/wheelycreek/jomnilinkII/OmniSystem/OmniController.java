@@ -1441,6 +1441,13 @@ public class OmniController implements OmniNotifyListener {
 				e.printStackTrace();
 			}
 		}
+		else {
+			synchronized (notificationListeners) {
+				for (OmniNotifyListener l : notificationListeners) {
+					l.objectChangedNotification(msg);
+				}
+			}
+		}
 	}
 
 }
