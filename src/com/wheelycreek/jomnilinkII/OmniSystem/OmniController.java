@@ -46,6 +46,7 @@ import com.digitaldan.jomnilinkII.MessageTypes.SystemInformation;
 import com.digitaldan.jomnilinkII.MessageTypes.SystemStatus;
 import com.digitaldan.jomnilinkII.MessageTypes.SystemTroubles;
 import com.digitaldan.jomnilinkII.MessageTypes.ZoneReadyStatus;
+import com.digitaldan.jomnilinkII.MessageTypes.CommandMessage.TimeUnit;
 import com.digitaldan.jomnilinkII.MessageTypes.events.OtherEvent;
 import com.digitaldan.jomnilinkII.MessageTypes.events.UserMacroButtonEvent;
 import com.digitaldan.jomnilinkII.MessageTypes.properties.AuxSensorProperties;
@@ -1373,14 +1374,32 @@ public class OmniController implements OmniNotifyListener {
 			case Unit: {
 				OmniUnit.UnitChangeMessage ucm = (OmniUnit.UnitChangeMessage)msg;
 				switch (ucm.changeType) {
+				case Status:
 				case RawState:
-					OmniUnit unit = units.get(ucm.number);
+					OmniUnit unit = getUnit(ucm.number);
 					if (unit != null) { // which it should never be.
 						switch ( unit.getUnitType()) {
 						case Flag:
 							sendAction( new ActionRequest(msg.area, msg.number, CommandMessage.unitSetCounterCmd(unit.number, unit.getRawStatus())));
+							break;
+						case UPB: {
+							TimeUnit tunit = TimeUnit.Inf;
+							int secs = 0;
+							if (ucm.timeFor == 0) {
+								tunit = TimeUnit.Seconds;
+								secs = unit.getTimeSecRemain();
+							}
+							int newValue = unit.getValue();
+							CommandMessage cmdmsg = null;
+							if ( newValue == 0 || newValue == 100) 	 
+								cmdmsg = CommandMessage.unitSwitchCmd(msg.number,newValue != 0,tunit, secs);
+							else 
+								cmdmsg = CommandMessage.unitLevelCmd(msg.number, newValue,tunit,secs);
+							sendAction(new ActionRequest(msg.area, msg.number,cmdmsg));
 						}
-					}
+						break;
+						}
+					}break;
 				}
 				// TODO: Change the value of a unit. (optionally for a specified time)
 			} break;
