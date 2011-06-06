@@ -26,5 +26,9 @@ public class OmniOutput extends OmniUnit {
 		updateSwitchedOn( (raw_status != 0), timeRemain, notifyType ); 
 		super.rawStatusChanged(timeRemain, notifyType);
 	}
+	
+	public boolean getSwitchedOn() {
+		return switched_on;
+	}
 
 }

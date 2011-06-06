@@ -20,4 +20,11 @@ public class OmniFlag extends OmniUnit {
 		updateSwitchedOn( (raw_status != 0), timeRemain, notifyType ); 
 		super.rawStatusChanged(timeRemain, notifyType);
 	}
+	
+	public boolean getSwitchedOn() {
+		return switched_on;
+	}
+	public int getValue() {
+		return getRawStatus();
+	}
 }

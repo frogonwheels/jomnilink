@@ -90,14 +90,23 @@ public class OmniUnit extends OmniPart {
 	/** Message sent when OmniZone changes.
 	 */
 	public class UnitChangeMessage extends OmniNotifyListener.ChangeMessage {
-		public UnitVariant variantType;
-		public ChangeType changeType;
+		final public UnitVariant variantType;
+		final public ChangeType changeType;
+		final public int timeFor;
 
 		public UnitChangeMessage(OmniArea area, UnitVariant unitvar, int number, OmniNotifyListener.NotifyType notifyType,
 				ChangeType changeType) {
 			super(area, number, notifyType);
 			this.changeType = changeType;
 			this.variantType = unitvar;
+			this.timeFor = 0;
+		}
+		public UnitChangeMessage(OmniArea area, UnitVariant unitvar, int number, int timefor, OmniNotifyListener.NotifyType notifyType,
+				ChangeType changeType) {
+			super(area, number, notifyType);
+			this.changeType = changeType;
+			this.variantType = unitvar;
+			this.timeFor = timefor;
 		}
 
 		/* (non-Javadoc)
@@ -106,10 +115,10 @@ public class OmniUnit extends OmniPart {
 		@Override
 		public String toString() {
 			return String.format(
-				"UnitChangeMessage [area=%s, variant=%s, number=%s, notifyType=%s, change_type=%s]",
-				area, variantType, number, notifyType, changeType);
+				"UnitChangeMessage [area=%s, variant=%s, number=%s, notifyType=%s, change_type=%s, time_for=%d]",
+				area, variantType, number, notifyType, changeType, timeFor);
 		}
-		
+		public ChangeType getChangeType() { return changeType;}
 	}
 	/** The derived unit class variant.
 	  */
@@ -152,6 +161,17 @@ public class OmniUnit extends OmniPart {
 	protected OmniNotifyListener.ChangeMessage createChangeMessage( ChangeType changetype, OmniNotifyListener.NotifyType notifyType) {
 		return new UnitChangeMessage(area, unit_variant, number, notifyType, changetype);
 	}
+	protected OmniNotifyListener.ChangeMessage createChangeMessage( ChangeType changetype, int timeFor, OmniNotifyListener.NotifyType notifyType) {
+		return new UnitChangeMessage(area, unit_variant, number, timeFor, notifyType, changetype);
+	}
+	public UnitVariant getVariant() {
+		return unit_variant;
+	}
+	
+	public int getValue() {
+		return this.value;
+	}
+	
 	/** The raw Status of the unit.
 	 * @return the status
 	 */
@@ -204,6 +224,9 @@ For counters:
 		updateStatus(state, timeRemain, OmniNotifyListener.NotifyType.ChangeRequest);
 	}
 	
+	public void setSwitchOn(boolean newVal, int timeRemain) {
+		updateSwitchedOn(newVal, timeRemain, NotifyType.ChangeRequest);
+	}
 	protected boolean forceChange( int timeSec, NotifyType notifyType, boolean pendFlag) {
 		return ( (pendFlag && notifyType != NotifyType.ChangeRequest)
 				|| timeSec != 0

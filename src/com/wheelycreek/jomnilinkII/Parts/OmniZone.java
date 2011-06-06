@@ -154,8 +154,8 @@ public class OmniZone extends OmniPart {
 					"ZoneChangeMessage [area=%s, number=%s, notifyType=%s, change_type=%s, zone_area=%s]",
 					area, number, notifyType, change_type, zone_area);
 		}
-		
-	}	
+		public ChangeType getChangeType() { return change_type;}
+	}
 	protected OmniNotifyListener.ChangeMessage createChangeMessage( ChangeType changetype, OmniNotifyListener.NotifyType notifyType) {
 		ZoneChangeMessage msg = new ZoneChangeMessage(number,changetype, notifyType );
 		return msg;

@@ -30,12 +30,7 @@ public class OmniDevice extends OmniUnit {
 	public void setSwitchedOn(boolean switchedOn) {
 		switched_on = switchedOn;
 	}
-	/**
-	 * @return the value
-	 */
-	public int getValue() {
-		return value;
-	}
+
 	/**
 	 * @param value the value to set
 	 */
@@ -83,6 +78,9 @@ public class OmniDevice extends OmniUnit {
 			this.scene = scn;
 			notify(createChangeMessage( ChangeType.Scene, notifyType));
 		}
+	}
+	public Boolean getSwitchedOn() {
+		return switched_on;
 	}
 	
 }
