@@ -175,7 +175,6 @@ public class OmniController implements OmniNotifyListener {
 	protected SystemFeatures    sys_features;
 	protected SystemFormats     sys_formats;
 	protected SystemInformation sys_info;
-	protected SystemStatus      sys_status;
 	protected SystemTroubles    sys_troubles;
 	protected ZoneReadyStatus   zones_ready;
 	
@@ -1251,16 +1250,14 @@ public class OmniController implements OmniNotifyListener {
 	}
 
 	/**
-	 * @return the sys_status
+	 * @return the System Status.
 	 * @throws OmniUnknownMessageTypeException 
 	 * @throws OmniInvalidResponseException 
 	 * @throws OmniNotConnectedException 
 	 * @throws IOException 
 	 */
 	public SystemStatus getStatus() throws IOException, OmniNotConnectedException, OmniInvalidResponseException, OmniUnknownMessageTypeException {
-		if (sys_status == null)
-			sys_status = omni.reqSystemStatus();
-		return sys_status;
+		return omni.reqSystemStatus();
 	}
 
 	/**
