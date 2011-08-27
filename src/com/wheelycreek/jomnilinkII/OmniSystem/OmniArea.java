@@ -36,7 +36,8 @@ public enum OmniArea {
 	UserSetting(Message.OBJ_TYPE_USER_SETTING,"User Setting"),
 	ControlReader(Message.OBJ_TYPE_CONTROL_READER, "Control Reader"),
 	ControlLock(Message.OBJ_TYPE_CONTROL_LOCK, "Control Lock"),
-	ExpEnclosure(Message.OBJ_TYPE_EXP, "Expansion Enclosure");
+	ExpEnclosure(Message.OBJ_TYPE_EXP, "Expansion Enclosure"),
+	UPBLink (0/*no object type*/, "UPBLink");
 	private final int obj_type;
 	private final String obj_name;
 

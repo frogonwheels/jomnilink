@@ -73,6 +73,7 @@ import com.wheelycreek.jomnilinkII.Parts.OmniSensor;
 import com.wheelycreek.jomnilinkII.Parts.OmniUnit;
 import com.wheelycreek.jomnilinkII.Parts.OmniZone;
 import com.wheelycreek.jomnilinkII.Parts.OmniCode.UserLevel;
+import com.wheelycreek.jomnilinkII.Parts.OmniUPBLink;
 
 
 
@@ -171,6 +172,7 @@ public class OmniController implements OmniNotifyListener {
 	protected SortedMap<Integer, OmniFlag> flags;
 	protected SortedMap<Integer, OmniButton> buttons;
 	protected SortedMap<Integer, OmniMessage> messages;
+	protected SortedMap<Integer, OmniUPBLink> upblinks;
 	
 	// Various one-off bits of system information.
 	protected SystemFeatures    sys_features;
@@ -193,6 +195,7 @@ public class OmniController implements OmniNotifyListener {
 		flags   = new TreeMap<Integer, OmniFlag>();
 		buttons = new TreeMap<Integer, OmniButton>();
 		messages = new TreeMap<Integer, OmniMessage>();
+		upblinks = new TreeMap<Integer, OmniUPBLink>();
 	}
 	
 	/** Construct an omni controller.
@@ -434,7 +437,6 @@ public class OmniController implements OmniNotifyListener {
 		OmniSensor sensor = sensors.get(status.getNumber());
 		if (sensor != null)
 			sensor.update(status, NotifyType.Notify);
-		
 	}
 	/** Receive a message status change.
 	 */
@@ -1063,6 +1065,16 @@ public class OmniController implements OmniNotifyListener {
 			msgObj.update(sensorstats[0], notifyType);
 	}
 
+	public OmniUPBLink getUPBLink(int idx) {
+		OmniUPBLink link = upblinks.get(idx);
+		if (link == null) {
+			link = new OmniUPBLink(idx);
+			upblinks.put(idx, link);
+			link.addNotificationListener(this);
+		}
+		return link;
+	}
+
 	/** Receive a single 'OtherEvent' type message.
 	  */
 	protected void otherEventReceive( OtherEvent event) {
@@ -1074,7 +1086,14 @@ public class OmniController implements OmniNotifyListener {
 				if (ob != null) {
 					ob.notifyPress();
 				}
-			}
+			} break;
+			case UPBLink: {
+				final int rawVal = event.getRawMessage();
+				final int linkno = rawVal & 0xff;
+				final int linkVal = (rawVal & 0x300) >> 8;
+				final OmniUPBLink link = getUPBLink(linkno);
+				link.updateState(linkVal, NotifyType.Notify);
+			} break;
 			case ProlinkMessage:
 			case CentraliteSwitch:
 			case Alarm:
@@ -1083,7 +1102,6 @@ public class OmniController implements OmniNotifyListener {
 			case SecurityArming:
 			case LumniaModeChange:
 			case UnitSwitchPress:
-			case UPBLink:
 			case AllSwitch:
 			case PhoneLine:
 			case Power:
@@ -1188,18 +1206,21 @@ public class OmniController implements OmniNotifyListener {
 	public String getName(OmniArea area, int index) throws OmniNotConnectedException, Exception {
 		if (index < 0)
 			return null;
+		if (area == OmniArea.UPBLink) {
+			return String.format("Link %d", index);
+		}
+
 		OmniPart part = getPart(area, index);
 		
 		if (part != null)
 			return part.getName();
-		
+
 		Vector<String> vectors = get_vectors(area);
 		if (vectors != null && (index <= vectors.size() ))
 			return vectors.get(index-1);
 		else
 			return String.format("%s %d", area.name(), index);
 	}
-	
 
 	public String getZoneName(int index) throws OmniNotConnectedException, Exception {
 		return getName(OmniArea.Zone, index);
@@ -1402,6 +1423,26 @@ public class OmniController implements OmniNotifyListener {
 					}break;
 				}
 				// TODO: Change the value of a unit. (optionally for a specified time)
+			} break;
+			case UPBLink: {
+				OmniUPBLink.UPBActionMessage uam = (OmniUPBLink.UPBActionMessage)msg;
+				OmniUPBLink link = getUPBLink(uam.number);
+				if (link != null) {
+					CommandMessage cmdmsg = null;
+					switch (uam.getChangeType()) {
+					case ACTIVATE:
+						cmdmsg = CommandMessage.unitUPBLinkCmd(uam.number, true);
+						break;
+					case DEACTIVATE:
+						cmdmsg = CommandMessage.unitUPBLinkCmd(uam.number, false);
+						break;
+					case FADESTOP: break; //not implemented.
+					case SETLEVEL:
+						cmdmsg = CommandMessage.unitUPBLinkStorePreset(uam.number);
+						break;
+					}
+					sendAction(new ActionRequest(msg.area, msg.number,cmdmsg));
+				}
 			} break;
 			case Sensor:{
 				//OmniSensor.SensorChangeMessage scm = (OmniSensor.SensorChangeMessage)msg;

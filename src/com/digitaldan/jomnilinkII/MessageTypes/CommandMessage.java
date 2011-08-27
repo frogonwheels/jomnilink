@@ -207,9 +207,26 @@ Command            Parameter 1      Parameter 2           Description
                                                             2 = 1.00 s
                                                             3 = 2.00 s
      27                0                1-n               stop blinking UPB unit P2
+     */
+     /*
      28                                 1-n               UPB link P2 off (deactivate)
      29                                 1-n               UPB link P2 on (activate)
+     */
+	public static CommandMessage unitUPBLinkCmd( int linkNo, boolean turnOn) {
+		if (linkNo  <= 0)
+			throw new IllegalArgumentException("UPB Link must be 1 or greater");
+		return new CommandMessage( turnOn?CMD_UNIT_UPB_LINK_OFF:CMD_UNIT_UPB_LINK_OFF,0, linkNo);
+	}
+     /*
      30                                 1-n               UPB link P2 set (store preset)
+     */
+	public static CommandMessage unitUPBLinkStorePreset( int linkNo ) {
+		if (linkNo  <= 0)
+			throw new IllegalArgumentException("UPB Link must be 1 or greater");
+		return new CommandMessage( CMD_UNIT_UPB_LINK_SET, 0, linkNo);
+
+	}
+     /*
      42                                 1-n               CentraLite Scene off
      43                                 1-n               CentraLite Scene on
      44                1-8              1-n               UPB unit P2 LED P1 off
