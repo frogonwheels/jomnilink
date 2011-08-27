@@ -93,8 +93,8 @@ public class Connection extends Thread {
 	public static int MAX_PACKET_SIZE = 255;
 	//Omni will kick you after 5 minutes of not receiving anything
 	public static int OMNI_TO = 60 * 5 * 1000;
-	// Keep alive time, Omni timeout minus one minute
-	public static int PING_TO = OMNI_TO - (1000 * 60);
+	// Keep alive time, Omni timeout minus one 1/2 minutes
+	public static int PING_TO =  OMNI_TO - (1000 * 90);
 
 	public boolean debug;
 	private boolean connected;
